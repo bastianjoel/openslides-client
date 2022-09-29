@@ -75,6 +75,21 @@
                             "aot": true,
                             "statsJson": false,
                             "progress": false
+                        },
+                        "e2e": {
+                            "buildOptimizer": false,
+                            "optimization": false,
+                            "outputHashing": "none",
+                            "vendorChunk": true,
+                            "extractLicenses": false,
+                            "sourceMap": true,
+                            "namedChunks": true,
+                            "vendorChunk": true,
+                            "statsJson": false,
+                            "progress": false,
+                            "customWebpackConfig": {
+                                "path": "./tests/integration/coverage.webpack.ts"
+                            }
                         }
                     },
                     "defaultConfiguration": "production"
@@ -90,6 +105,12 @@
                         }
                     },
                     "defaultConfiguration": "development"
+                },
+                "serve-coverage": {
+                    "builder": "@angular-builders/custom-webpack:dev-server",
+                    "options": {
+                        "browserTarget": "client:build:e2e"
+                    }
                 },
                 "extract-i18n": {
                     "builder": "@angular-devkit/build-angular:extract-i18n",

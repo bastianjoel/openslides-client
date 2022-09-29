@@ -6,6 +6,10 @@ module.exports = defineConfig({
         "baseUrl": "https://localhost:8000",
         "supportFile": "cypress/support/index.ts",
         "specPattern": "cypress/integration/**/*.spec.ts",
+        setupNodeEvents(on, config) {
+            require('@cypress/code-coverage/task')(on, config);
+            return config;
+        }
     },
     "video": false,
     "retries": {
