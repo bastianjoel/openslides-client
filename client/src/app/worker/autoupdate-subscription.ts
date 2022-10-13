@@ -74,6 +74,13 @@ export class AutoupdateSubscription {
     }
 
     /**
+     * Clears the currently stored data
+     */
+    public clearData(): void {
+        this.currentData = null;
+    }
+
+    /**
      * Informs the subscribers that a error occured in stream
      *
      * @param data The error data

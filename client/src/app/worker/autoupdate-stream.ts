@@ -171,6 +171,10 @@ export class AutoupdateStream {
             body: JSON.stringify(this.subscriptions.map(s => s.request))
         });
 
+        for (let subscription of this.subscriptions) {
+            subscription.clearData();
+        }
+
         const LINE_BREAK = `\n`.charCodeAt(0);
         const reader = response.body.getReader();
         let next: Uint8Array = null;
