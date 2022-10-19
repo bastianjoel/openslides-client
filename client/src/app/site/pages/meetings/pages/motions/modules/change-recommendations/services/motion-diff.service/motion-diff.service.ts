@@ -312,8 +312,12 @@ export class MotionDiffService {
         html = html
             .replace(/\s+<\/P>/gi, `</P>`)
             .replace(/\s+<\/DIV>/gi, `</DIV>`)
-            .replace(/\s+<\/LI>/gi, `</LI>`);
+            .replace(/\s+<\/LI>/gi, `</LI>`)
+            .replace(/\s+<\/TR>/gi, `</TR>`)
+            .replace(/\s+<\/TBODY>/gi, `</TBODY>`)
+            .replace(/\s+<\/TABLE>/gi, `</TABLE>`);
         html = html.replace(/\s+<LI>/gi, `<LI>`).replace(/<\/LI>\s+/gi, `</LI>`);
+        html = html.replace(/\s+<TR>/gi, `<TR>`).replace(/<\/TR>\s+/gi, `</TR>`);
 
         html = html.replace(/\u00A0/g, ` `); // replace no break space
         html = html.replace(/\u2013/g, `-`);
@@ -322,7 +326,7 @@ export class MotionDiffService {
         // Newline characters: after closing block-level-elements, but not after BR (which is inline)
         html = html.replace(/(<br *\/?>)\n/gi, `$1`);
         html = html.replace(/[ \n\t]+/gi, ` `);
-        html = html.replace(/(<\/(div|p|ul|li|blockquote>)>) /gi, `$1\n`);
+        html = html.replace(/(<\/(div|p|ul|li|blockquote|table|tbody|tr>)>) /gi, `$1\n`);
 
         return html;
     }

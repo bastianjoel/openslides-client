@@ -434,7 +434,9 @@ export function isInlineElement(element: Element): boolean {
         `TT`,
         `INS`,
         `DEL`,
-        `STRIKE`
+        `STRIKE`,
+        `TH`,
+        `TD`
     ];
     if (element) {
         return inlineElements.indexOf(element.nodeName) > -1;
