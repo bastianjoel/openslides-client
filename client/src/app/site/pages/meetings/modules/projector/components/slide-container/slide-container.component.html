@@ -1,3 +1,7 @@
-<div id="slide" [ngClass]="{ content: slideOptions.scaleable || slideOptions.scrollable }" [ngStyle]="slideStyle">
-    <ng-container #slide></ng-container>
+<div id="slideOne" [ngClass]="{ content: slideOptions[0].scaleable || slideOptions[0].scrollable }" [ngStyle]="slideStyle[0]">
+    <ng-container #slideOne></ng-container>
+</div>
+
+<div id="slideTwo" [ngClass]="{ content: slideOptions[1].scaleable || slideOptions[1].scrollable }" [ngStyle]="slideStyle[1]">
+    <ng-container #slideTwo></ng-container>
 </div>

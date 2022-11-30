@@ -33,14 +33,24 @@
 
         <os-projector-clock *ngIf="projector!.show_clock" [color]="projector!.header_font_color"></os-projector-clock>
 
-        <div *ngFor="let slide of slides | async">
+        <div *ngIf="firstSlide">
             <os-slide-container
-                [slideData]="slide"
+                [slideData]="firstSlide"
                 [scroll]="projector!.scroll"
                 [scale]="projector!.scale"
                 [projector]="projector!"
-            ></os-slide-container>
+                ></os-slide-container>
         </div>
+        <ng-container *ngIf="!firstSlide">
+            <div *ngFor="let slide of slides | async">
+                <os-slide-container
+                    [slideData]="slide"
+                    [scroll]="projector!.scroll"
+                    [scale]="projector!.scale"
+                    [projector]="projector!"
+                    ></os-slide-container>
+            </div>
+        </ng-container>
 
         <div id="footer" class="headerFooter" *ngIf="projector && projector.show_header_footer">
             <div class="footertext"></div>
