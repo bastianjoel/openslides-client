@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { MatLegacyDialog as MatDialog, MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dialog';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
 import { largeDialogSettings } from 'src/app/infrastructure/utils/dialog-settings';
 import { BaseDialogService } from 'src/app/ui/base/base-dialog-service';

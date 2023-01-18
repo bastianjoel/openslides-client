@@ -5,7 +5,7 @@
 </os-head-bar>
 <div class="content-container">
     <!-- Title Card -->
-    <mat-card class="os-card" *ngIf="!!title">
+    <mat-card appearance="outlined" class="os-card" *ngIf="!!title">
         <a [routerLink]="viewModelUrl || null" [state]="{ back: 'true' }">
             <h1 class="line-and-icon">
                 {{ title | translate }}
@@ -62,7 +62,7 @@
     <os-poll-collection [currentProjection]="projectedViewModel"></os-poll-collection>
 
     <!-- Projector -->
-    <mat-card class="os-card spacer-bottom-60">
+    <mat-card appearance="outlined" class="os-card spacer-bottom-60">
         <a [routerLink]="projectorUrl" [target]="projectionTarget" [state]="{ back: 'true' }">
             <p class="subtitle-text">{{ projectorTitle | translate }}</p>
         </a>

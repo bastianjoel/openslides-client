@@ -52,7 +52,7 @@
     .fake-disabled {
         background: mat.get-color-from-palette($background, unselected-chip) !important;
         opacity: 1 !important;
-
+        /* TODO(mdc-migration): The following rule targets internal classes of button that may no longer apply for the MDC version.*/
         .mat-button-wrapper {
             .mat-icon {
                 color: mat.get-color-from-palette($foreground, disabled-button) !important;
@@ -106,7 +106,7 @@
     }
 
     /* motion list/detail view */
-    .mat-chip-list.user .mat-chip {
+    .mat-mdc-chip-list.user .mat-chip {
         color: mat.get-color-from-palette($foreground, text);
         background: mat.get-color-from-palette($background, card);
         border-color: mat.get-color-from-palette($background, selected-button);
@@ -145,7 +145,7 @@
     .user-subtitle {
         color: mat.get-color-from-palette($foreground, secondary-text);
     }
-
+    /* TODO(mdc-migration): The following rule targets internal classes of card that may no longer apply for the MDC version.*/
     mat-card-header {
         background-color: mat.get-color-from-palette($background, app-bar);
     }

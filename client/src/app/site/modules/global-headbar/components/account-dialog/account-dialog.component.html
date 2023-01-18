@@ -8,7 +8,7 @@
     <mat-divider></mat-divider>
     <div mat-dialog-content class="account-dialog-container">
         <div class="account-dialog-menu-items">
-            <mat-selection-list [multiple]="false">
+            <mat-selection-list [multiple]="false" hideSingleSelectionIndicator>
                 <ng-container *ngFor="let item of menuItems">
                     <mat-list-option
                         [value]="item"

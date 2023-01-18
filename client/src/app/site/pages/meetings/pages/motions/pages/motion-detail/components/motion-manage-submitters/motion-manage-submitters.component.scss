@@ -1,6 +1,6 @@
 .search-users {
     display: grid;
-    .mat-form-field {
+    .mat-mdc-form-field {
         width: 100%;
     }
 }
@@ -31,7 +31,7 @@ h4 {
     }
 }
 
-.user .mat-chip {
+.user .mat-mdc-chip {
     border-radius: 16px !important;
     padding: 5px 15px !important;
     margin: 5px 0;

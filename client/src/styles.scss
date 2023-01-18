@@ -7,9 +7,9 @@
 //  If you specify typography styles for the components you use elsewhere, you should delete this line.
 //  If you don't need the default component typographies but still want the hierarchy styles,
 //  you can delete this line and instead use:
-//    `@include mat.legacy-typography-hierarchy(mat.define-legacy-typography-config());`
-@include mat.all-legacy-component-typographies();
-@include mat.legacy-core();
+//    `@include mat.legacy-typography-hierarchy(mat.define-typography-config());`
+@include mat.all-component-typographies();
+@include mat.core();
 
 /** theming */
 @import './assets/styles/theme-styles.scss';
@@ -72,7 +72,7 @@
 }
 
 .mat-toolbar h2,
-.mat-dialog-title {
+.mat-mdc-dialog-title {
     font-family: OSFont, Fira Sans, Roboto, Arial, Helvetica, sans-serif;
 }
 
@@ -115,7 +115,7 @@ h4 {
     font-size: 100%;
     margin-bottom: 5px;
 
-    .mat-icon-button .mat-icon {
+    .mat-mdc-icon-button .mat-icon {
         font-size: 16px;
     }
 }
@@ -175,7 +175,7 @@ b,
         vertical-align: bottom;
     }
 
-    .mat-icon-button,
+    .mat-mdc-icon-button,
     .mat-icon {
         margin: auto 0;
         vertical-align: middle;
@@ -219,7 +219,7 @@ b,
     box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.37) !important;
 }
 
-.mat-card {
+.mat-mdc-card {
     @extend .regular-shadow;
 }
 
@@ -234,7 +234,7 @@ b,
 
 .os-card {
     margin-bottom: 20px !important;
-
+    /* TODO(mdc-migration): The following rule targets internal classes of select that may no longer apply for the MDC version. */
     .mat-select-arrow-wrapper {
         visibility: hidden;
     }
@@ -243,7 +243,7 @@ b,
 .os-form-card {
     padding: 27px;
 
-    .mat-form-field {
+    .mat-mdc-form-field {
         width: 100%;
         padding: 10px 0;
     }
@@ -253,12 +253,13 @@ b,
     margin-top: 20px !important;
     margin-bottom: 20px !important;
 
-    .mat-form-field,
-    .mat-select {
+    .mat-mdc-form-field,
+    .mat-mdc-select {
         width: 100%;
     }
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
 .projector-card .mat-form-field-infix {
     width: 290px;
 }
@@ -338,7 +339,7 @@ b,
         overflow: visible;
     }
     /** hide mat header row */
-    .mat-header-row {
+    .mat-mdc-header-row {
         display: none;
     }
 }
@@ -382,7 +383,7 @@ b,
     border-radius: 0 !important;
 }
 
-.mat-menu-panel {
+.mat-mdc-menu-panel {
     max-width: initial !important;
 }
 
@@ -418,8 +419,8 @@ b,
     }
 }
 
-.mat-chip,
-.mat-basic-chip {
+.mat-mdc-chip,
+.mat-mdc-basic-chip {
     font-size: 12px;
     min-height: 22px !important;
     border-radius: 5px !important;
@@ -439,15 +440,15 @@ b,
     text-align: center;
 }
 
-.mat-chip:focus,
-.mat-basic-chip:focus {
+.mat-mdc-chip:focus,
+.mat-mdc-basic-chip:focus {
     outline: none;
 }
-button.mat-menu-item.selected {
+button.mat-mdc-menu-item.selected {
     font-weight: bold !important;
 }
 
-.mat-menu-item .mat-icon {
+.mat-mdc-menu-item .mat-icon {
     margin-right: 8px !important;
 }
 
@@ -507,7 +508,7 @@ button.mat-menu-item.selected {
     margin-top: -8px;
 }
 
-.mat-mini-fab.large {
+.mat-mdc-mini-fab.large {
     width: 24px;
     height: 24px;
     line-height: 24px;
@@ -525,7 +526,7 @@ button.mat-menu-item.selected {
     padding-bottom: 20px;
 }
 
-.mat-radio-button {
+.mat-mdc-radio-button {
     padding-right: 20px;
 }
 
@@ -649,12 +650,12 @@ button.mat-menu-item.selected {
         overflow: scroll;
     }
 
-    .mat-header-cell {
+    .mat-mdc-header-cell {
         min-width: 100px;
         flex: 2;
         padding-right: 8px;
     }
-    .mat-cell {
+    .mat-mdc-cell {
         min-width: 100px;
         flex: 2;
         padding-top: 2px;
@@ -739,7 +740,7 @@ button.mat-menu-item.selected {
     height: 24px !important;
     width: 24px !important;
     line-height: 24px !important;
-
+    /* TODO(mdc-migration): The following rule targets internal classes of button that may no longer apply for the MDC version. */
     .mat-button-wrapper {
         vertical-align: top;
         line-height: initial;
@@ -750,22 +751,24 @@ button.mat-menu-item.selected {
  * Fix to enable multi line mat hints. See:
  * https://github.com/angular/components/issues/5227
  */
-.mat-form-field {
+.mat-mdc-form-field {
+    /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
+    /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
     .mat-form-field-wrapper {
         padding-bottom: 0;
-
+        /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
         .mat-form-field-underline {
             position: initial !important;
             display: block;
             margin-top: -1px;
         }
-
+        /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
         .mat-form-field-subscript-wrapper,
         .mat-form-field-ripple {
             position: initial !important;
             display: table;
         }
-
+        /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
         .mat-form-field-subscript-wrapper {
             min-height: calc(1em + 1px);
         }

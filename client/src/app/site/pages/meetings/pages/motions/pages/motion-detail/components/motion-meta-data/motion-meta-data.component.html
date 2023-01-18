@@ -207,21 +207,21 @@
             </mat-basic-chip>
 
             <!-- Display a chip list of tags -->
-            <mat-chip-list class="mat-chip-list-stacked">
+            <mat-chip-listbox class="mat-chip-list-stacked">
                 <mat-basic-chip *ngFor="let tag of motion.tags" class="grey" disabled disableRipple>
                     {{ tag }}
                 </mat-basic-chip>
-            </mat-chip-list>
+            </mat-chip-listbox>
         </div>
     </div>
 
     <!-- For non privileged users -->
     <div *ngIf="!perms.isAllowed('change_metadata', motion)">
-        <mat-chip-list class="mat-chip-list-stacked">
+        <mat-chip-listbox class="mat-chip-list-stacked">
             <mat-basic-chip *ngFor="let tag of motion.tags" class="grey" disableRipple>
                 {{ tag }}
             </mat-basic-chip>
-        </mat-chip-list>
+        </mat-chip-listbox>
     </div>
 </div>
 

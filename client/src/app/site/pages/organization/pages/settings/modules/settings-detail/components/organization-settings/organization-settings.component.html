@@ -11,7 +11,7 @@
 </os-head-bar>
 
 <form [formGroup]="orgaSettingsForm" (ngSubmit)="onSubmit()" *ngIf="orgaSettingsForm">
-    <mat-card class="os-card">
+    <mat-card appearance="outlined" class="os-card">
         <div class="orga-settings-form">
             <h2>{{ 'General' | translate }}</h2>
             <mat-form-field>
@@ -31,7 +31,7 @@
         </div>
     </mat-card>
 
-    <mat-card class="os-card spacer-bottom-60">
+    <mat-card appearance="outlined" class="os-card spacer-bottom-60">
         <div class="orga-settings-form">
             <h2>{{ 'Email settings' | translate }}</h2>
             <mat-form-field>
@@ -53,7 +53,7 @@
         </div>
     </mat-card>
 
-    <mat-card class="os-card margin-bottom-60" *osOmlPerms="OML.superadmin">
+    <mat-card appearance="outlined" class="os-card margin-bottom-60" *osOmlPerms="OML.superadmin">
         <div class="superadmin-place">
             <h2>{{ 'Superadmin settings' | translate }}</h2>
             <!-- System url -->
