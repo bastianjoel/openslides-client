@@ -8,6 +8,7 @@ import {
     AutoupdateSetEndpointParams
 } from './interfaces-autoupdate';
 
+const SINGLE_STREAM_FIELD_LIMIT = 100;
 const autoupdatePool = new AutoupdateStreamPool({
     url: `/system/autoupdate`,
     healthUrl: `/system/autoupdate/health`,
@@ -30,6 +31,24 @@ if (!environment.production) {
         console.log(`subscriptionQueue\n`, subscriptionQueues);
         console.log(`pool\n`, autoupdatePool);
     };
+}
+
+function countFields(request: any): number {
+    const fields = request?.fields;
+    if (!fields) {
+        return 1;
+    }
+
+    let total = 0;
+    for (let key of Object.keys(fields)) {
+        if (fields[key] instanceof Object) {
+            total += countFields(fields[key]);
+        } else {
+            total++;
+        }
+    }
+
+    return total;
 }
 
 function openConnection(
@@ -60,16 +79,20 @@ function openConnection(
 
     const category = getRequestCategory(description, request);
     const subscription = new AutoupdateSubscription(streamId, queryParams, requestHash, request, description, [ctx]);
-    subscriptionQueues[category].push(subscription);
 
-    clearTimeout(openTimeouts[category]);
-    openTimeouts[category] = setTimeout(() => {
-        const queue = subscriptionQueues[category];
-        subscriptionQueues[category] = [];
-        openTimeouts[category] = undefined;
+    if (countFields(request) > SINGLE_STREAM_FIELD_LIMIT) {
+        autoupdatePool.openNewStream([subscription], queryParams);
+    } else {
+        subscriptionQueues[category].push(subscription);
+        clearTimeout(openTimeouts[category]);
+        openTimeouts[category] = setTimeout(() => {
+            const queue = subscriptionQueues[category];
+            subscriptionQueues[category] = [];
+            openTimeouts[category] = undefined;
 
-        autoupdatePool.openNewStream(queue, queryParams);
-    }, 5);
+            autoupdatePool.openNewStream(queue, queryParams);
+        }, 5);
+    }
 }
 
 function closeConnection(ctx: MessagePort, params: AutoupdateCloseStreamParams): void {
