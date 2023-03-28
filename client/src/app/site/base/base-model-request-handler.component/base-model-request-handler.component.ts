@@ -1,6 +1,6 @@
 import { Directive, EventEmitter, inject, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { combineLatest, map, Observable, startWith } from 'rxjs';
+import { combineLatest, delay, map, Observable, startWith } from 'rxjs';
 import { Id } from 'src/app/domain/definitions/key-types';
 import { ModelRequestService } from 'src/app/site/services/model-request.service';
 import { BaseUiComponent } from 'src/app/ui/base/base-ui-component';
@@ -23,7 +23,7 @@ interface HidingConfig {
     /**
      * If `true` a request is automatically closed when a component is going to be deleted.
      */
-    hideWhenDestroyed?: boolean;
+    hideWhenDestroyed?: boolean | number;
     /**
      * If `true` a request is automatically closed when the meeting got changed.
      */
@@ -145,6 +145,8 @@ export class BaseModelRequestHandlerComponent extends BaseUiComponent implements
 
         if (hideWhenDestroyed === true) {
             observables.push(this._destroyed.asObservable().pipe(startWith(false)));
+        } else if (hideWhenDestroyed && hideWhenDestroyed > 0) {
+            observables.push(this._destroyed.asObservable().pipe(startWith(false), delay(hideWhenDestroyed)));
         }
 
         if (hideWhenMeetingChanged) {
