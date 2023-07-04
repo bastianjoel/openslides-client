@@ -1,0 +1,31 @@
+<div class="os-datetimepicker-container">
+    <mat-form-field>
+        <mat-label *ngIf="title">{{ title | translate }}</mat-label>
+        <form class="datetimepicker-fields" [formGroup]="pickerFormGroup">
+            <input type="hidden" [matDatepicker]="datepicker" formControlName="datepicker" />
+            <mat-hint *ngIf="hintText">{{ hintText | translate }}</mat-hint>
+            <mat-datepicker #datepicker>
+                <mat-datepicker-actions>
+                    <button mat-button (click)="updateForm(null)" matDatepickerCancel color="warn">
+                        {{ 'Clear' | translate }}
+                    </button>
+                    <button mat-button matDatepickerCancel>{{ 'Cancel' | translate }}</button>
+                    <button mat-raised-button color="primary" matDatepickerApply>{{ 'Apply' | translate }}</button>
+                </mat-datepicker-actions>
+            </mat-datepicker>
+
+            <input type="hidden" [format]="24" formControlName="timepicker" [ngxTimepicker]="timepicker" />
+            <ngx-material-timepicker #timepicker></ngx-material-timepicker>
+        </form>
+
+        <input matInput type="datetime-local" [formControl]="contentForm" readonly />
+        <div class="suffix-wrapper" matSuffix>
+            <mat-icon class="red-warning-text" *ngIf="showUpdateSuccessIcon">check_circle</mat-icon>
+            <mat-datepicker-toggle [for]="datepicker" (click)="$event.preventDefault()"></mat-datepicker-toggle>
+            <ngx-material-timepicker-toggle [for]="timepicker">
+                <mat-icon ngxMaterialTimepickerToggleIcon>access_time</mat-icon>
+            </ngx-material-timepicker-toggle>
+        </div>
+        <mat-error *ngIf="error">{{ error }}</mat-error>
+    </mat-form-field>
+</div>

@@ -38,6 +38,7 @@
     "get-available-languages": "npm run ts -- cli/get-available-languages.ts"
   },
   "dependencies": {
+    "@angular-material-components/datetime-picker": "^8.0.0",
     "@angular/animations": "^14.3.0",
     "@angular/cdk": "^14.2.7",
     "@angular/common": "^14.3.0",
@@ -73,7 +74,7 @@
     "ngx-date-fns": "^10.0.1",
     "ngx-device-detector": "^4.0.1",
     "ngx-file-drop": "^14.0.1",
-    "ngx-material-timepicker": "^5.5.2",
+    "ngx-material-timepicker": "^13.1.0",
     "ngx-papaparse": "^6.0.2",
     "pdfmake": "^0.2.6",
     "pofile": "^1.1.4",

@@ -238,6 +238,20 @@
                     ></os-repo-search-selector>
                 </mat-form-field>
             </div>
+
+            <div class="content-field" *ngIf="editMotion">
+                <os-datetimepicker
+                    formControlName="created"
+                    [title]="'Creation date' | translate"
+                ></os-datetimepicker>
+            </div>
+
+            <div class="content-field" *ngIf="editMotion">
+                <os-datetimepicker
+                    formControlName="workflow_timestamp"
+                    [title]="'Submit date' | translate"
+                ></os-datetimepicker>
+            </div>
         </ng-container>
     </div>
 </form>

@@ -18,6 +18,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterModule } from '@angular/router';
+import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 import { ChipSelectModule } from 'src/app/site/modules/chip-select/chip-select.module';
 import { OpenSlidesTranslationModule } from 'src/app/site/modules/translations';
 import { MeetingsComponentCollectorModule } from 'src/app/site/pages/meetings/modules/meetings-component-collector';
@@ -63,6 +64,7 @@ import { MotionDetailDirectivesModule } from './modules/directives/motion-detail
 import { MotionChangeRecommendationDialogModule } from './modules/motion-change-recommendation-dialog/motion-change-recommendation-dialog.module';
 import { MotionDetailRoutingModule } from './motion-detail-routing.module';
 import { MotionDetailServiceModule } from './services/motion-detail-service.module';
+import { DatetimepickerModule } from 'src/app/ui/modules/datetimepicker';
 
 @NgModule({
     declarations: [
@@ -127,6 +129,7 @@ import { MotionDetailServiceModule } from './services/motion-detail-service.modu
         MatInputModule,
         MatProgressBarModule,
         ParticipantSearchSelectorModule,
+        DatetimepickerModule,
 
         // Detail view
         ScrollingModule,
