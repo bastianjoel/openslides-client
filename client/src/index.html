@@ -20,13 +20,11 @@
       navigator.serviceWorker.addEventListener(`message`, (e) => {
         console.warn(`SW: `, e);
         if (e.data && e.data.type === `VERSION_DETECTED`) {
-          alert(`New version detected`);
+            document.body.style.display = 'none';
         }
 
         if (e.data && e.data.type === `VERSION_READY`) {
-            if (confirm(`New version ready. Reload?`)) {
-                window.location.reload();
-            }
+            window.location.reload();
         }
       });
       navigator.serviceWorker.getRegistration().then((sw) => {
