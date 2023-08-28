@@ -32,7 +32,7 @@ import { SUBSCRIPTION_SUFFIX } from '../model-request.service';
     providedIn: `root`
 })
 export class AutoupdateCommunicationService {
-    private autoupdateDataObservable: Observable<any>;
+    private autoupdateDataObservable: Observable<any | `reconnect`>;
     private openResolvers = new Map<string, (value: number | PromiseLike<number>) => void>();
     private endpointName: string;
     private autoupdateEndpointStatus: 'healthy' | 'unhealthy' = `healthy`;
@@ -67,6 +67,11 @@ export class AutoupdateCommunicationService {
                     case `new-user`:
                         this.authService.updateUser((<AutoupdateNewUser>msg).content?.id);
                         break;
+                    case `terminating`:
+                        setTimeout(() => {
+                            dataSubscription.next(`reconnect`);
+                        }, 100);
+                        break;
                 }
             });
         });
@@ -100,7 +105,6 @@ export class AutoupdateCommunicationService {
         }
 
         this.registerConnectionStatusListener();
-        this.handleBrowserReload();
     }
 
     /**
@@ -264,21 +268,6 @@ export class AutoupdateCommunicationService {
             }, 1000);
         } else {
             clearTimeout(this.unhealtyTimeout);
-        }
-    }
-
-    private handleBrowserReload(): void {
-        if (
-            (window.performance.navigation && window.performance.navigation.type === 1) ||
-            (window.performance.getEntriesByType &&
-                window.performance
-                    .getEntriesByType(`navigation`)
-                    .map(nav => nav.name)
-                    .includes(`reload`))
-        ) {
-            this.sharedWorker.sendMessage(`autoupdate`, {
-                action: `reconnect-force`
-            } as AutoupdateReconnectForce);
         }
     }
 }

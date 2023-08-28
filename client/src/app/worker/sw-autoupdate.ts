@@ -148,41 +148,34 @@ if (!environment.production) {
     registerDebugCommands();
 }
 
-export function addAutoupdateListener(context: any): void {
-    context.addEventListener(`message`, e => {
-        const receiver = e.data?.receiver;
-        if (!receiver || receiver !== `autoupdate`) {
-            return;
-        }
-
-        const msg = e.data?.msg;
-        const params = msg?.params;
-        const action = msg?.action;
-        switch (action) {
-            case `open`:
-                openConnection(context, params);
-                break;
-            case `close`:
-                closeConnection(context, params);
-                break;
-            case `auth-change`:
-                autoupdatePool.updateAuthentication();
-                break;
-            case `set-endpoint`:
-                autoupdatePool.setEndpoint(params);
-                break;
-            case `set-connection-status`:
-                updateOnlineStatus();
-                break;
-            case `reconnect-inactive`:
-                autoupdatePool.reconnectAll(true);
-                break;
-            case `reconnect-force`:
-                autoupdatePool.reconnectAll(false);
-                break;
-            case `enable-debug`:
-                registerDebugCommands();
-                break;
-        }
-    });
+export function autoupdateMessageHandler(ctx: any, e): void {
+    const msg = e.data?.msg;
+    const params = msg?.params;
+    const action = msg?.action;
+    switch (action) {
+        case `open`:
+            openConnection(ctx, params);
+            break;
+        case `close`:
+            closeConnection(ctx, params);
+            break;
+        case `auth-change`:
+            autoupdatePool.updateAuthentication();
+            break;
+        case `set-endpoint`:
+            autoupdatePool.setEndpoint(params);
+            break;
+        case `set-connection-status`:
+            updateOnlineStatus();
+            break;
+        case `reconnect-inactive`:
+            autoupdatePool.reconnectAll(true);
+            break;
+        case `reconnect-force`:
+            autoupdatePool.reconnectAll(false);
+            break;
+        case `enable-debug`:
+            registerDebugCommands();
+            break;
+    }
 }

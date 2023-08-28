@@ -267,6 +267,7 @@ export class AutoupdateStream {
             this.sendErrorToSubscriptions(data);
         } else {
             if (this._currentData !== null) {
+                const toDelete = Object.keys(data);
                 Object.assign(this._currentData, data);
             } else {
                 this._currentData = data;

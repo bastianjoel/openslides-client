@@ -80,7 +80,11 @@ export class AutoupdateService {
 
         this.communication.setEndpoint(AUTOUPDATE_DEFAULT_ENDPOINT);
         this.communication.listen().subscribe(data => {
-            this.handleAutoupdate({ autoupdateData: data.data, id: data.streamId, description: data.description });
+            if (data === `reconnect`) {
+                this.reconnect(this._currentQueryParams);
+            } else {
+                this.handleAutoupdate({ autoupdateData: data.data, id: data.streamId, description: data.description });
+            }
         });
 
         window.addEventListener(`beforeunload`, () => {
