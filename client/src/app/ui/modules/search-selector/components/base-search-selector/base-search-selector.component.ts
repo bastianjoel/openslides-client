@@ -216,6 +216,7 @@ export abstract class BaseSearchSelectorComponent extends BaseFormFieldControlCo
         }
         this._selectableItemsList = this.sortFn ? allItems.sort(this.sortFn) : allItems;
         this.filteredItemsSubject.next(this.getFilteredItemsBySearchValue());
+        this.updateOptionFocus();
     }
 
     protected get selectableItems(): Selectable[] {
@@ -338,6 +339,7 @@ export abstract class BaseSearchSelectorComponent extends BaseFormFieldControlCo
 
     protected onSearchValueUpdated(nextValue: string): void {
         this.filteredItemsSubject.next(this.getFilteredItemsBySearchValue(nextValue.toLowerCase()));
+        this.updateOptionFocus();
     }
 
     protected initializeForm(): void {
@@ -377,6 +379,12 @@ export abstract class BaseSearchSelectorComponent extends BaseFormFieldControlCo
         this._snapshotValue = value;
         const nextValue = this.transformPropagateFn(value);
         setTimeout(() => super.push(nextValue));
+    }
+
+    private updateOptionFocus(): void {
+        if (!this.matSelect?.options.some(o => o.active)) {
+            // this.matSelect.options.first.setActiveStyles();
+        }
     }
 
     private triggerUpdate(): void {
