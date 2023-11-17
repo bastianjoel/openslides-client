@@ -230,8 +230,11 @@ export class MotionFormatService {
                     this.diffService.extractMotionLineRange(
                         motionText,
                         {
-                            from: i === 0 ? firstLine : changesToShow[i - 1].getLineTo() + 1,
-                            to: changesToShow[i].getLineFrom() - 1
+                            from:
+                                i === 0
+                                    ? firstLine
+                                    : changesToShow[i - 1].getLineTo() + (targetMotion.start_line_number ?? 1),
+                            to: changesToShow[i].getLineFrom() + (targetMotion.start_line_number ?? 1) - 2
                         },
                         true,
                         lineLength,
@@ -240,12 +243,23 @@ export class MotionFormatService {
                 );
             }
 
-            text.push(this.diffService.getChangeDiff(motionText, changesToShow[i], lineLength, highlightedLine));
-            lastLineTo = changesToShow[i].getLineTo();
+            text.push(
+                this.diffService.getChangeDiff(
+                    motionText,
+                    changesToShow[i],
+                    lineLength,
+                    highlightedLine,
+                    targetMotion.start_line_number ?? 1
+                )
+            );
+            lastLineTo = changesToShow[i].getLineTo() + (targetMotion.start_line_number ?? 1) - 1;
         }
 
         text.push(
-            this.diffService.getTextRemainderAfterLastChange(motionText, changesToShow, lineLength, highlightedLine)
+            this.diffService.getTextRemainderAfterLastChange(motionText, changesToShow, lineLength, highlightedLine, {
+                from: lastLineTo,
+                to: null
+            })
         );
         return text.join(``);
     };

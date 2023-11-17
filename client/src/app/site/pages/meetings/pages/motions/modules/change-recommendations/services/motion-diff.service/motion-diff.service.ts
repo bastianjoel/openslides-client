@@ -1964,13 +1964,19 @@ export class MotionDiffService {
         html: LineNumberedString,
         change: ViewUnifiedChange,
         lineLength: number,
-        highlight?: number
+        highlight?: number,
+        startLineNumber?: number
     ): string {
+        const lineOffset = (startLineNumber ?? 1) - 1;
         let data: ExtractedContent;
         let oldText: string;
 
         try {
-            data = this.extractRangeByLineNumbers(html, change.getLineFrom(), change.getLineTo());
+            data = this.extractRangeByLineNumbers(
+                html,
+                change.getLineFrom() + lineOffset,
+                change.getLineTo() + lineOffset
+            );
             oldText =
                 data.outerContextStart +
                 data.innerContextStart +
@@ -1998,7 +2004,7 @@ export class MotionDiffService {
         oldText = this.lineNumberingService.insertLineNumbers({
             html: oldText,
             lineLength,
-            firstLine: change.getLineFrom()
+            firstLine: change.getLineFrom() + lineOffset
         });
         let diff = this.diff(oldText, change.getChangeNewText());
 
