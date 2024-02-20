@@ -102,6 +102,7 @@ export class OpenSlidesMainComponent implements OnInit {
 
         try {
             if ((await navigator.serviceWorker?.getRegistrations())?.length) {
+                console.time();
                 if (
                     await Promise.race([
                         this.updateService.checkForUpdate(),
@@ -114,15 +115,22 @@ export class OpenSlidesMainComponent implements OnInit {
                     ])
                 ) {
                     console.warn(`applyUpdate`);
+                    console.timeEnd();
                     await this.updateService.applyUpdate();
                     return;
+                } else {
+                    console.warn(`check update false`);
+                    console.timeEnd();
+                    this.updateService.checkForUpdate();
                 }
             } else {
                 console.warn(`else: checkForUpdate`);
-                await this.updateService.checkForUpdate();
+                this.updateService.checkForUpdate();
             }
         } catch (e) {
             console.warn(e);
+            console.timeEnd();
+            this.updateService.checkForUpdate();
         }
 
         setTimeout(() => {
