@@ -100,6 +100,7 @@ export class OpenSlidesMainComponent implements OnInit {
         this.router.initialNavigation();
         await this.onInitDone;
 
+        console.time();
         try {
             if ((await navigator.serviceWorker?.getRegistrations())?.length) {
                 if (
@@ -108,13 +109,17 @@ export class OpenSlidesMainComponent implements OnInit {
                         new Promise((_, reject) => setTimeout(() => reject(), 3000))
                     ])
                 ) {
-                    await this.updateService.applyUpdate();
+                    console.timeEnd();
+                    if (confirm()) {
+                        await this.updateService.applyUpdate();
+                    }
                     return;
                 }
             } else {
                 this.updateService.checkForUpdate();
             }
         } catch (_) {}
+        console.timeEnd();
 
         setTimeout(() => {
             this.lifecycleService.appLoaded.next();
