@@ -14,6 +14,9 @@ import { ColorDefinition, ColorService } from './color.service';
 const DARK_MODE_STORAGE_KEY = `theme_dark_mode`;
 const DARK_MODE_CSS_CLASS = `openslides-dark-theme`;
 const LIGHT_MODE_CSS_CLASS = `openslides-light-theme`;
+const MD_VERSION_STORAGE_KEY = `md_version`;
+const M2_CSS_CLASS = `m2-version`;
+const M3_CSS_CLASS = `m3-version`;
 
 export const GENERAL_DEFAULT_COLORS: Partial<ThemeGeneralColors> = {
     yes: `#4caf50`,
@@ -29,6 +32,20 @@ export class ThemeService {
     public static readonly DEFAULT_PRIMARY_COLOR = `#317796`;
     public static readonly DEFAULT_ACCENT_COLOR = `#2196f3`;
     public static readonly DEFAULT_WARN_COLOR = `#f06400`;
+
+    public get isM3Observable(): Observable<boolean> {
+        return this._isM3Subject;
+    }
+
+    public set isM3Mode(useM3: boolean) {
+        if (useM3) {
+            this.changeThemeVersionClass(M3_CSS_CLASS);
+        } else {
+            this.changeThemeVersionClass(M2_CSS_CLASS);
+        }
+        this._isM3Subject.next(useM3);
+        this.storage.set(MD_VERSION_STORAGE_KEY, useM3);
+    }
 
     public get isDarkModeObservable(): Observable<boolean> {
         return this._isDarkModeSubject;
@@ -56,6 +73,7 @@ export class ThemeService {
     public readonly currentGeneralColorsSubject: BehaviorSubject<Partial<ThemeGeneralColors>> = new BehaviorSubject({});
 
     private readonly _isDarkModeSubject = new BehaviorSubject<boolean>(false);
+    private readonly _isM3Subject = new BehaviorSubject<boolean>(false);
 
     /**
      * Holds the current theme as member.
@@ -85,6 +103,7 @@ export class ThemeService {
             }
         });
         storage.get<boolean>(DARK_MODE_STORAGE_KEY).then(useDarkMode => this.setInitialTheme(useDarkMode));
+        storage.get<boolean>(MD_VERSION_STORAGE_KEY).then(useM3 => this.setInitialThemeVersion(useM3));
         // The observable above will not fire. Do it by hand
         this.changeThemePalettes();
     }
@@ -97,6 +116,10 @@ export class ThemeService {
             return ThemeService.DEFAULT_WARN_COLOR;
         }
         return ThemeService.DEFAULT_ACCENT_COLOR;
+    }
+
+    public toggleM3(): void {
+        this.isM3Mode = !this._isM3Subject.value;
     }
 
     public toggleDarkMode(): void {
@@ -123,12 +146,29 @@ export class ThemeService {
         });
     }
 
+    private setInitialThemeVersion(useM3?: boolean): void {
+        if (typeof useM3 === `boolean`) {
+            this.isM3Mode = useM3;
+        } else {
+            this.isM3Mode = false;
+        }
+    }
+
     private setInitialTheme(useDarkMode?: boolean): void {
         if (typeof useDarkMode === `boolean`) {
             this.isDarkMode = useDarkMode;
         } else {
             this.isDarkMode = window.matchMedia && window.matchMedia(`(prefers-color-scheme: dark)`).matches;
         }
+    }
+
+    private changeThemeVersionClass(nextThemeCssClass: string): void {
+        const classList = document.getElementsByTagName(`body`)[0].classList;
+        const toRemove = Array.from(classList).filter(className => className.includes(`-version`));
+        if (toRemove.length) {
+            classList.remove(...toRemove);
+        }
+        classList.add(nextThemeCssClass);
     }
 
     private changeThemeClass(nextThemeCssClass: string): void {

@@ -22,6 +22,16 @@
                 <div>
                     <button
                         mat-icon-button
+                        (click)="toggleM3Mode($event)"
+                        matTooltip="{{
+                            ((isM3ActiveObservable | async) ? 'Material design 3' : 'Material design 2') | translate
+                        }}"
+                        matTooltipPosition="left"
+                    >
+                        {{ (isM3ActiveObservable | async) ? '3' : '2' }}
+                    </button>
+                    <button
+                        mat-icon-button
                         (click)="toggleDarkMode($event)"
                         matTooltip="{{
                             ((isDarkModeActiveObservable | async) ? 'Light mode' : 'Dark mode') | translate

@@ -57,6 +57,10 @@ export class AccountButtonComponent extends BaseUiComponent implements OnInit {
         return this.theme.isDarkModeObservable;
     }
 
+    public get isM3ActiveObservable(): Observable<boolean> {
+        return this.theme.isM3Observable;
+    }
+
     public user: ViewUser | null = null;
     public username = ``;
     public isLoggedIn = false;
@@ -148,6 +152,12 @@ export class AccountButtonComponent extends BaseUiComponent implements OnInit {
 
     public getOmlVerboseName(): string {
         return getOmlVerboseName(this.user!.organization_management_level);
+    }
+
+    public toggleM3Mode(buttonEvent: Event): void {
+        buttonEvent.preventDefault();
+        buttonEvent.stopPropagation();
+        this.theme.toggleM3();
     }
 
     public toggleDarkMode(buttonEvent: Event): void {

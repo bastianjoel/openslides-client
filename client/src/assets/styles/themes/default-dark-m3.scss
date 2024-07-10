@@ -1,0 +1,16 @@
+@use '@angular/material-experimental' as matx;
+
+@import '../color-palettes/os-dynamic-palette';
+@import './typography.scss';
+
+// $openslides-primary: mat.define-palette($dynamic-theme-primary);
+// $openslides-accent: mat.define-palette($dynamic-theme-accent);
+// $openslides-warn: mat.define-palette($dynamic-theme-warn);
+
+$openslides-dark-m3-theme: matx.define-theme((
+    color: (
+        theme-type: dark
+    )
+));
+
+// $os-outline: mat.get-color-from-palette(mat.$grey-palette, 300);

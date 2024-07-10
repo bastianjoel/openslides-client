@@ -5,24 +5,30 @@
 // /** Import brand theme */
 @import 'themes/default-light.scss';
 @import 'themes/default-dark.scss';
+@import 'themes/default-light-m3.scss';
+@import 'themes/default-dark-m3.scss';
 @import 'themes/var-overwrites.scss';
 
 /** Global component style definition */
 @import 'global-components-style.scss';
 
-@include mat.all-component-themes($openslides-light-theme);
+.m2-version {
+    @include mat.all-component-themes($openslides-light-theme);
+}
 
-.openslides-light-theme {
-    @include os-component-themes($openslides-light-theme);
+.m3-version {
+    @include mat.all-component-themes($openslides-light-m3-theme);
+}
+
+.openslides-light-theme.m2-version {
     @include os-var-overwrites();
 
     --mat-menu-item-icon-color: rgba(0, 0, 0, 0.54);
     --mat-table-header-headline-color: rgba(0, 0, 0, 0.55);
 }
 
-.openslides-dark-theme {
+.openslides-dark-theme.m2-version {
     @include mat.all-component-colors($openslides-dark-theme);
-    @include os-component-themes($openslides-dark-theme);
     @include os-var-overwrites();
 
     --mat-table-header-headline-color: rgba(255, 255, 255, 0.70);
@@ -32,6 +38,19 @@
             color: white;
         }
     }
+}
+
+.openslides-dark-theme.m3-version {
+    @include mat.all-component-colors($openslides-dark-m3-theme);
+    @include os-component-themes($openslides-dark-theme);
+}
+
+.openslides-light-theme {
+    @include os-component-themes($openslides-light-theme);
+}
+
+.openslides-dark-theme {
+    @include os-component-themes($openslides-dark-theme);
 }
 
 .mat-calendar-body-cell {
