@@ -1,3 +1,6 @@
+@use '@angular/material' as mat;
+@import 'src/assets/styles/themes/default-m3.scss';
+
 :host {
     display: block;
     position: sticky;
@@ -43,4 +46,14 @@
     margin-left: -1px;
     margin-top: -3px;
     transform: scale(0.75);
+}
+
+.global-headbar,
+.headbar {
+    --mat-toolbar-container-background-color: var(--md-sys-color-primary);
+    --mat-toolbar-container-text-color: var(--md-sys-color-on-primary);
+
+    ::ng-deep .mat-mdc-button-base.mat-mdc-button-base.mat-unthemed {
+        --mdc-icon-button-icon-color: var(--mat-toolbar-container-text-color);
+    }
 }

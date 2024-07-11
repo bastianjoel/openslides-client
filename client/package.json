@@ -49,6 +49,7 @@
     "@angular/platform-browser-dynamic": "^18.1.0",
     "@angular/router": "^18.1.0",
     "@angular/service-worker": "^18.1.0",
+    "@material/material-color-utilities": "^0.3.0",
     "@ngx-pwa/local-storage": "^18.0.0",
     "@ngx-translate/core": "^15.0.0",
     "@ngx-translate/http-loader": "^8.0.0",
