@@ -60,10 +60,14 @@ export class ThemeService {
     }
 
     public set isDarkMode(useDarkMode: boolean) {
-        if (useDarkMode) {
-            this.changeThemeClass(DARK_MODE_CSS_CLASS);
+        if (this._isM3Subject.value) {
+            this.changeThemePalettes(this._currentTheme);
         } else {
-            this.changeThemeClass(LIGHT_MODE_CSS_CLASS);
+            if (useDarkMode) {
+                this.changeThemeClass(DARK_MODE_CSS_CLASS);
+            } else {
+                this.changeThemeClass(LIGHT_MODE_CSS_CLASS);
+            }
         }
         this._isDarkModeSubject.next(useDarkMode);
         this.storage.set(DARK_MODE_STORAGE_KEY, useDarkMode);
@@ -210,12 +214,12 @@ export class ThemeService {
             const theme = themeFromSourceColor(argbFromHex(primary));
             applyTheme(theme, {
                 target: document.body,
-                dark: this.isDarkMode,
+                dark: this._isDarkModeSubject.value,
                 brightnessSuffix: true
             });
             this.applySurfaceStyles(theme, {
                 target: document.body,
-                dark: this.isDarkMode
+                dark: this._isDarkModeSubject.value
             });
         } catch (e) {
             console.log(`Error setting theme.`);

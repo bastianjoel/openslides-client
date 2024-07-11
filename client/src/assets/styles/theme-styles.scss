@@ -20,6 +20,7 @@
 }
 
 .openslides-light-theme.m2-version {
+    @include os-component-themes($openslides-light-theme);
     @include os-var-overwrites();
 
     --mat-menu-item-icon-color: rgba(0, 0, 0, 0.54);
@@ -28,6 +29,7 @@
 
 .openslides-dark-theme.m2-version {
     @include mat.all-component-colors($openslides-dark-theme);
+    @include os-component-themes($openslides-dark-theme);
     @include os-var-overwrites();
 
     --mat-table-header-headline-color: rgba(255, 255, 255, 0.70);
@@ -37,14 +39,6 @@
             color: white;
         }
     }
-}
-
-.openslides-light-theme {
-    @include os-component-themes($openslides-light-theme);
-}
-
-.openslides-dark-theme {
-    @include os-component-themes($openslides-dark-theme);
 }
 
 .mat-calendar-body-cell {
