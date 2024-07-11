@@ -53,6 +53,7 @@ a {
     line-height: $button-size;
     text-align: center;
     cursor: pointer;
-    background: white;
+    background: var(--md-sys-color-on-primary);
+    color: var(--md-sys-color-primary);
     border-radius: 50%;
 }

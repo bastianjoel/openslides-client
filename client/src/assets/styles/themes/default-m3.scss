@@ -1,0 +1,12 @@
+@use '@angular/material' as mat;
+
+@import '../color-palettes/os-dynamic-palette';
+@import './typography.scss';
+
+$openslides-m3-theme: mat.define-theme((
+    color: (
+        theme-type: light,
+        use-system-variables: true,
+        system-variables-prefix: md-sys-color
+    )
+));
