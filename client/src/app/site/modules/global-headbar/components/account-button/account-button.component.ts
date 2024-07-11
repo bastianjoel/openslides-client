@@ -69,6 +69,10 @@ export class AccountButtonComponent extends BaseUiComponent implements OnInit {
         return this.operator.user;
     }
 
+    public get isM3ActiveObservable(): Observable<boolean> {
+        return this.theme.isM3Observable;
+    }
+
     public username = ``;
     public isLoggedIn = false;
 
@@ -159,6 +163,12 @@ export class AccountButtonComponent extends BaseUiComponent implements OnInit {
 
     public closeLanguageMenu(): void {
         this._languageTrigger?.closeMenu();
+    }
+
+    public toggleM3Mode(buttonEvent: Event): void {
+        buttonEvent.preventDefault();
+        buttonEvent.stopPropagation();
+        this.theme.toggleM3();
     }
 
     public getOmlVerboseName(): string {
