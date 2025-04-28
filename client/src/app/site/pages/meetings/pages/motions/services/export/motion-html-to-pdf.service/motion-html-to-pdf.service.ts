@@ -7,8 +7,6 @@ import {
     HtmlToPdfService
 } from 'src/app/gateways/export/html-to-pdf.service';
 
-import { MotionsExportModule } from '../motions-export.module';
-
 /**
  * Shape of line number objects
  */
@@ -30,7 +28,7 @@ interface HtmlToPdfConfig {
 }
 
 @Injectable({
-    providedIn: MotionsExportModule
+    providedIn: `root`
 })
 export class MotionHtmlToPdfService extends HtmlToPdfService {
     /**
@@ -198,9 +196,7 @@ export class MotionHtmlToPdfService extends HtmlToPdfService {
             }
 
             for (const line of lines) {
-                if (line.lineNumber) {
-                    listCol.columns[0].stack.push(this.getLineNumberObject(line));
-                }
+                listCol.columns[0].stack.push(this.getLineNumberObject(line));
             }
 
             list[nodeName] = cleanedChildren;
@@ -258,7 +254,8 @@ export class MotionHtmlToPdfService extends HtmlToPdfService {
                     // Add a blank with the normal font size here, so in rare cases the text
                     // is rendered on the next page and the line number on the previous page.
                     text: ` `,
-                    decoration: ``
+                    decoration: ``,
+                    alignment: `left`
                 },
                 {
                     text: line.lineNumber,
@@ -267,7 +264,8 @@ export class MotionHtmlToPdfService extends HtmlToPdfService {
                     font: `LineNumbering`,
                     bold: false,
                     italics: false,
-                    bolditalics: false
+                    bolditalics: false,
+                    alignment: `left`
                 }
             ],
             marginBottom: line.marginBottom,

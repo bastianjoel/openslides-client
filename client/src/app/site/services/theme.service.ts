@@ -8,7 +8,6 @@ import {
     themeFromSourceColor
 } from '@material/material-color-utilities';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
-import { PollColor } from 'src/app/domain/models/poll';
 import { ThemeRepositoryService } from 'src/app/gateways/repositories/themes/theme-repository.service';
 
 import { HtmlColor, Id } from '../../domain/definitions/key-types';
@@ -82,7 +81,7 @@ export class ThemeService {
      *
      * Set by the ColorService.
      */
-    public readonly currentGeneralColorsSubject: BehaviorSubject<Partial<ThemeGeneralColors>> = new BehaviorSubject({});
+    public readonly currentGeneralColorsSubject = new BehaviorSubject<Partial<ThemeGeneralColors>>({});
 
     private readonly _isDarkModeSubject = new BehaviorSubject<boolean>(false);
     private readonly _isM3Subject = new BehaviorSubject<boolean>(false);
@@ -142,7 +141,7 @@ export class ThemeService {
         if ([`yes`, `no`, `abstain`].includes(key)) {
             return this.currentGeneralColorsSubject.value[key] ?? GENERAL_DEFAULT_COLORS[key];
         }
-        return PollColor[key];
+        return `#e2e2e2`;
     }
 
     /**

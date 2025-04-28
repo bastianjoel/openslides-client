@@ -8,7 +8,8 @@ import { UserControllerService } from 'src/app/site/services/user-controller.ser
 @Component({
     selector: `os-reset-password`,
     templateUrl: `./reset-password.component.html`,
-    styleUrls: [`./reset-password.component.scss`]
+    styleUrls: [`./reset-password.component.scss`],
+    standalone: false
 })
 export class ResetPasswordComponent extends BaseComponent implements OnInit {
     /**
@@ -56,7 +57,7 @@ export class ResetPasswordComponent extends BaseComponent implements OnInit {
             await this.userRepo.forgetPassword(this.resetPasswordForm.get(`email`)!.value);
             this._isWaiting = false;
             this.matSnackBar.open(
-                this.translate.instant(`An email with a password reset link has been sent.`),
+                this.translate.instant(`If your email address exists in our database, you will receive a password reset email.`),
                 this.translate.instant(`OK`),
                 {
                     duration: 0
