@@ -149,7 +149,7 @@
             </button>
         </mat-dialog-actions>
     </form>
-    @if (previewProjector) {
+    @if (previewProjector && previewProjector.id) {
         <mat-dialog-content>
             <h3>{{ 'Preview' | translate }}</h3>
             <div class="preview-container">

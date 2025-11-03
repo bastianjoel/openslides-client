@@ -2,6 +2,7 @@
     background-color: lightgoldenrodyellow;
     position: relative;
     overflow: hidden;
+    min-height: 1px;
 
     #offline-indicator {
         top: 0 !important;
@@ -26,5 +27,7 @@
         font-size: 22px !important;
         line-height: 24px !important;
         border: none;
+        height: 100%;
+        width: 100%;
     }
 }
