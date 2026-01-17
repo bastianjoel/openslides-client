@@ -313,7 +313,7 @@ export function insertDanglingSpace(element: Element | DocumentFragment): void {
             lastChild = element.childNodes[element.childNodes.length - 2];
         }
         if (lastChild.nodeType === TEXT_NODE) {
-            if (lastChild.nodeValue === `` || lastChild.nodeValue!.substr(-1) !== ` `) {
+            if (lastChild.nodeValue === `` || lastChild.nodeValue!.slice(-1) !== ` `) {
                 lastChild.nodeValue += ` `;
             }
         } else {

@@ -227,8 +227,8 @@ export class LineNumbering {
             return lineNode;
         };
         const addLinebreakToPreviousNode = (lineNode: Element, offset: number): void => {
-            const firstText = lineNode.nodeValue!.substr(0, offset + 1);
-            const secondText = lineNode.nodeValue!.substr(offset + 1);
+            const firstText = lineNode.nodeValue!.slice(0, offset + 1);
+            const secondText = lineNode.nodeValue!.slice(offset + 1);
             const lineBreak = this.createLineBreak();
             const firstNode = document.createTextNode(firstText);
             lineNode.parentNode!.insertBefore(firstNode, lineNode);
