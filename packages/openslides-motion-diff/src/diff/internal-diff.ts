@@ -146,7 +146,7 @@ const TOKENIZE_REGEXES = {
     prependLt: /(?=<)/g,
     appendGt: /(.*?>)/g,
     space: /( )/g,
-    dot: /(\. )/g,
+    dot: /(\.)/g,
     comma: /(,)/g,
     exclaim: /(!)/g,
     dash: /(-)/g,
