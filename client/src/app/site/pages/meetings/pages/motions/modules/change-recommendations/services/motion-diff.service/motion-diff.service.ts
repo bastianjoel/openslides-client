@@ -391,6 +391,23 @@ export class MotionDiffService {
     }
 
     /**
+     * Optimized method to get just the first change token index.
+     * Much faster than getAmendmentParagraphsLines for sorting purposes.
+     * 
+     * @param {number} paragraphNo The paragraph number
+     * @param {string} origText The original text (without line numbers)
+     * @param {string} newText The changed text
+     * @return {number | null} Token index of first change, or null if no changes
+     */
+    public getFirstChangeTokenIndex(
+        paragraphNo: number,
+        origText: string,
+        newText: string
+    ): number | null {
+        return HtmlDiff.getFirstChangeTokenIndex(paragraphNo, origText, newText);
+    }
+
+    /**
      * Returns the HTML with the changes, optionally with a highlighted line.
      * The original motion needs to be provided.
      *

@@ -431,4 +431,62 @@ export class MotionLineNumberingService {
             throw new Error(`getDiffedParagraphToChoose: given amendment has no parent`);
         }
     }
+
+    /**
+     * Optimized method to get the first change token index for sorting amendments.
+     * Much faster than getAmendmentParagraphLines as it doesn't compute full diffs.
+     * Returns the token index of the first change, suitable for sorting amendments
+     * by their position in the parent motion.
+     * 
+     * @param {ViewMotion} amendment
+     * @param {number} lineLength
+     * @param {ChangeRecoMode} crMode
+     * @param {ViewMotionChangeRecommendation[]} changeRecommendations
+     * @returns {number | null} Token index of first change, or null if no changes
+     */
+    public getFirstAmendmentChangeIndex(
+        amendment: ViewMotion,
+        lineLength: number,
+        crMode: ChangeRecoMode,
+        changeRecommendations: ViewMotionChangeRecommendation[]
+    ): number | null {
+        const motion = amendment.lead_motion as ViewMotion;
+        if (!motion) {
+            return null;
+        }
+
+        const baseParagraphs = this.getTextParagraphs(motion, false, lineLength); // Don't add line numbers
+
+        let amendmentParagraphs: (string | null)[] = [];
+        if (crMode === ChangeRecoMode.Original) {
+            amendmentParagraphs = baseParagraphs.map(
+                (_: string, paraNo: number) => amendment.amendment_paragraph_text(paraNo)
+            );
+        } else {
+            amendmentParagraphs = this.applyChangesToAmendment(
+                amendment,
+                lineLength,
+                changeRecommendations,
+                false
+            );
+        }
+
+        // Find first changed paragraph and return its token index
+        for (let paraNo = 0; paraNo < baseParagraphs.length; paraNo++) {
+            const newText = amendmentParagraphs[paraNo];
+            if (newText !== null && baseParagraphs[paraNo] !== undefined) {
+                // Strip line numbers from both texts for fair comparison
+                const origText = this.lineNumberingService.stripLineNumbers(baseParagraphs[paraNo]);
+                const tokenIndex = this.diffService.getFirstChangeTokenIndex(paraNo, origText, newText);
+                
+                if (tokenIndex !== null) {
+                    // Return a combined index: paragraph number * large constant + token index
+                    // This ensures amendments in later paragraphs sort after earlier ones
+                    return paraNo * 100000 + tokenIndex;
+                }
+            }
+        }
+
+        return null;
+    }
 }

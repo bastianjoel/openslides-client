@@ -227,6 +227,23 @@ export class ViewMotion extends BaseProjectableViewModel<Motion> {
         }
     }
 
+    /**
+     * Optimized getter for sorting amendments by first change position.
+     * Uses token index instead of full diff computation for better performance.
+     * Returns a sortable string combining parent motion number and change index.
+     */
+    public get parentAndChangeIndex(): string | null {
+        if (this.isParagraphBasedAmendment() && this.lead_motion) {
+            if (this._firstChangeIndex === undefined) {
+                this._firstChangeIndex = this.getFirstAmendmentChangeIndex();
+            }
+            if (this._firstChangeIndex !== null) {
+                return `${this.lead_motion.number} ${this._firstChangeIndex}`;
+            }
+        }
+        return null;
+    }
+
     public get forwardingStatus(): ForwardingStatus {
         let status = ForwardingStatus.none;
         if (!!this.origin_id || !!this.origin_meeting_id) {
@@ -249,6 +266,7 @@ export class ViewMotion extends BaseProjectableViewModel<Motion> {
 
     private _changedAmendmentLines: DiffLinesInParagraph[] | null = null;
     private _affectedAmendmentLines: DiffLinesInParagraph[] | null = null;
+    private _firstChangeIndex: number | null | undefined = undefined;
 
     public getVotingText(context: VotingTextContext<ViewMotion>): string {
         const motionTranslation = context.translateFn(`Motion`);
@@ -263,6 +281,11 @@ export class ViewMotion extends BaseProjectableViewModel<Motion> {
         recoMode: ChangeRecoMode,
         includeUnchanged?: boolean
     ) => DiffLinesInParagraph[] = () => [];
+
+    /**
+     * @warning This is injected. Do not use it!
+     */
+    public getFirstAmendmentChangeIndex: () => number | null = () => null;
 
     public getParagraphTitleByParagraph!: (paragraph: DiffLinesInParagraph) => string | null;
     // This is set by the repository

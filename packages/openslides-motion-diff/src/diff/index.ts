@@ -1060,6 +1060,61 @@ export function getAmendmentParagraphsLines(
 }
 
 /**
+  * Optimized function to get just the first change token index for sorting amendments.
+  * Much faster than getAmendmentParagraphsLines as it doesn't compute full diffs or format HTML.
+  * 
+  * Returns the token index of the first change in the first changed paragraph.
+  * Token index is computed based on the position in the tokenized HTML string,
+  * which provides a stable, fast sorting key.
+  *
+  * @param {number} paragraphNo The paragraph number
+  * @param {string} origText The original text - should be unnumbered for token comparison
+  * @param {string} newText The changed text
+  * @returns {number | null} Token index of first change, or null if no changes
+  */
+export function getFirstChangeTokenIndex(
+    paragraphNo: number,
+    origText: string,
+    newText: string
+): number | null {
+    // Tokenize both strings
+    const oldTokens = tokenizeText(origText);
+    const newTokens = tokenizeText(newText);
+    
+    // Find first difference
+    const minLength = Math.min(oldTokens.length, newTokens.length);
+    for (let i = 0; i < minLength; i++) {
+        if (oldTokens[i] !== newTokens[i]) {
+            return i;
+        }
+    }
+    
+    // If one is longer than the other, the first extra token is the change
+    if (oldTokens.length !== newTokens.length) {
+        return minLength;
+    }
+    
+    // No changes found
+    return null;
+}
+
+/**
+  * Simple tokenization for text comparison - splits on whitespace and punctuation
+  * Similar to tokenizeHtml but simpler for faster performance
+  * 
+  * @param {string} text
+  * @returns {string[]}
+  */
+function tokenizeText(text: string): string[] {
+    // Remove HTML tags for simpler comparison
+    const withoutTags = text.replace(/<[^>]+>/g, ' ');
+    // Split on whitespace and punctuation, filter empty strings
+    return withoutTags
+        .split(/(\s+|[.,!?;:\-])/)
+        .filter(token => token.trim().length > 0);
+}
+
+/**
   * Returns the HTML with the changes, optionally with a highlighted line.
   * The original motion needs to be provided.
   *

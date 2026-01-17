@@ -15,6 +15,16 @@ export class AmendmentListSortService extends MotionListBaseSortService {
 
     private amendmentSortOptions: OsSortingOption<ViewMotion>[] = [
         {
+            property: `parentAndChangeIndex`,
+            label: this.translate.instant(`Main motion and change position (fast)`),
+            baseKeys: [`amendment_paragraphs`],
+            foreignBaseKeys: {
+                motion: [`number`, `text`],
+                motion_change_recommendation: [`rejected`],
+                meeting: [`motions_line_length`]
+            }
+        },
+        {
             property: `parentAndLineNumber`,
             label: this.translate.instant(`Main motion and line number`),
             baseKeys: [`amendment_paragraphs`],
@@ -28,7 +38,7 @@ export class AmendmentListSortService extends MotionListBaseSortService {
 
     public constructor() {
         super({
-            sortProperty: `parentAndLineNumber`,
+            sortProperty: `parentAndChangeIndex`,
             sortAscending: true
         });
     }
