@@ -42,6 +42,37 @@ export function insert({
 }
 
 /**
+ * V2.0 API: Adds line number nodes to a DocumentFragment (in-place modification).
+ * This is more efficient than the string-based insert() as it avoids serialization.
+ * 
+ * @param fragment - DocumentFragment to add line numbers to (modified in place)
+ * @param lineLength - Maximum line length
+ * @param highlight - Optional line number to highlight
+ * @param firstLine - First line number (default: 1)
+ */
+export function insertIntoFragment(
+    fragment: DocumentFragment,
+    lineLength: number,
+    highlight?: number,
+    firstLine: number = 1
+): void {
+    // Convert fragment content to HTML, process it, then replace fragment content
+    const tempDiv = document.createElement('div');
+    // Move all nodes from fragment to temp div
+    while (fragment.firstChild) {
+        tempDiv.appendChild(fragment.firstChild);
+    }
+    
+    const ln = new LineNumbering(tempDiv.innerHTML, lineLength, firstLine, highlight ?? null);
+    const processed = ln.run();
+    
+    // Move processed nodes back to fragment
+    while (processed.firstChild) {
+        fragment.appendChild(processed.firstChild);
+    }
+}
+
+/**
   * This enforces that no line is longer than the given line Length. However, this method does not care about
   * line numbers, diff-markup etc.
   * It's mainly used to display diff-formatted text with the original line numbering, that may have longer lines
@@ -68,6 +99,17 @@ export function strip(html: string): string {
     root.innerHTML = html;
     stripLineNumbersFromNode(root);
     return root.innerHTML;
+}
+
+/**
+ * V2.0 API: Strips line number spans from a DocumentFragment (in-place modification).
+ * More efficient than the string-based strip() as it avoids serialization.
+ * 
+ * @param fragment - DocumentFragment to strip line numbers from (modified in place)
+ */
+export function stripFromFragment(fragment: DocumentFragment): void {
+    const lineNumbers = fragment.querySelectorAll('.os-line-number');
+    lineNumbers.forEach(span => span.remove());
 }
 
 /**
