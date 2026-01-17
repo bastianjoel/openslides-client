@@ -188,9 +188,12 @@ function tokenizeHtml(str: string): string[] {
     ];
 
     let res = [str];
-    for (const splitConf of splitConfigs) {
+    for (let configIdx = 0; configIdx < splitConfigs.length; configIdx++) {
+        const splitConf = splitConfigs[configIdx];
         const newArr: string[] = [];
-        for (let j = 0; j < res.length; j++) {
+        const resLen = res.length;
+        
+        for (let j = 0; j < resLen; j++) {
             const str = res[j];
             // Don't split HTML tags
             if (str[0] === `<` && splitConf.by !== `<` && splitConf.by !== `>`) {
@@ -199,15 +202,17 @@ function tokenizeHtml(str: string): string[] {
             }
 
             const parts = str.split(splitConf.regex);
+            const partsLen = parts.length;
+            
             // Performance: avoid spread operator and filter separately
             if (splitConf.append) {
-                for (let k = 0; k < parts.length; k++) {
+                for (let k = 0; k < partsLen; k++) {
                     if (parts[k] !== ``) {
                         newArr.push(parts[k]);
                     }
                 }
             } else {
-                for (let k = 0; k < parts.length; k++) {
+                for (let k = 0; k < partsLen; k++) {
                     newArr.push(parts[k]);
                 }
             }

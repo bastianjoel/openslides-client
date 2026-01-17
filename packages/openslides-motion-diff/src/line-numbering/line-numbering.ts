@@ -197,23 +197,19 @@ export class LineNumbering {
         let firstTextNode = true;
         const addLine = (text: string): HTMLSpanElement | Text => {
             let lineNode: HTMLSpanElement | Text;
-            if (firstTextNode) {
-                if (this.highlightLine === (this.currentLineNumber as number) - 1) {
-                    lineNode = document.createElement(`span`);
-                    lineNode.setAttribute(`class`, `highlight`);
-                    lineNode.innerHTML = text;
-                } else {
-                    lineNode = document.createTextNode(text);
-                }
-                firstTextNode = false;
+            const shouldHighlight = firstTextNode 
+                ? (this.highlightLine === (this.currentLineNumber as number) - 1)
+                : (this.currentLineNumber === this.highlightLine && this.highlightLine !== null);
+            
+            if (shouldHighlight) {
+                lineNode = document.createElement(`span`);
+                lineNode.setAttribute(`class`, `highlight`);
+                lineNode.innerHTML = text;
             } else {
-                if (this.currentLineNumber === this.highlightLine && this.highlightLine !== null) {
-                    lineNode = document.createElement(`span`);
-                    lineNode.setAttribute(`class`, `highlight`);
-                    lineNode.innerHTML = text;
-                } else {
-                    lineNode = document.createTextNode(text);
-                }
+                lineNode = document.createTextNode(text);
+            }
+            
+            if (!firstTextNode) {
                 out.push(this.createLineBreak());
                 if (this.currentLineNumber !== null) {
                     if (this.ignoreNextRegularLineNumber) {
@@ -223,6 +219,8 @@ export class LineNumbering {
                     }
                 }
             }
+            
+            firstTextNode = false;
             out.push(lineNode);
             return lineNode;
         };

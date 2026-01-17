@@ -426,23 +426,26 @@ export function diff(
     lineLength: number | null = null,
     firstLineNumber: number | null = null
 ): string {
-    // TODO: This is a workaround to make sure the first element of a amendment
-    //       has a line number for correct display of amendments in front of list
-    //       or block elements
+    // Performance: Avoid repeated innerHTML and querySelector calls in loop
     const htmlOldEl = document.createElement(`template`);
     const htmlNewEl = document.createElement(`template`);
     htmlNewEl.innerHTML = htmlNew;
     htmlOldEl.innerHTML = htmlOld;
-    if (htmlNewEl.content.children[0] && !htmlNewEl.content.children[0].querySelector(`.os-line-number`)) {
+    
+    // Cache the query results
+    const newContentFirstChild = htmlNewEl.content.children[0];
+    if (newContentFirstChild && !newContentFirstChild.querySelector(`.os-line-number`)) {
         const ln = htmlNewEl.content.querySelector(`.os-line-number`);
-        if (ln && htmlOldEl.content.querySelector(`.os-line-number`)) {
-            if (htmlNewEl.content.children[0].childNodes.length > 0) {
-                htmlNewEl.content.children[0].childNodes[0].before(ln);
+        const oldLineNumber = ln && htmlOldEl.content.querySelector(`.os-line-number`);
+        
+        if (oldLineNumber) {
+            if (newContentFirstChild.childNodes.length > 0) {
+                newContentFirstChild.childNodes[0].before(ln!);
             } else {
-                htmlNewEl.content.children[0].before(ln);
+                newContentFirstChild.before(ln!);
             }
 
-            htmlOldEl.content.children[0].querySelector(`.os-line-number`)!.remove();
+            oldLineNumber.remove();
 
             htmlNew = htmlNewEl.innerHTML;
             htmlOld = htmlOldEl.innerHTML;
@@ -756,16 +759,18 @@ export function diff(
     if (diffDetectBrokenDiffHtml(diffUnnormalized)) {
         diff = diffParagraphs(htmlOld, htmlNew, lineLength!, firstLineNumber!);
     } else {
-        let node: Element = document.createElement(`div`);
-        node.innerHTML = diffUnnormalized;
-        diff = node.innerHTML;
-
+        // Performance: Skip unnecessary DOM round-trip if we can
         if (lineLength !== null && firstLineNumber !== null) {
             diff = LineNumbering.insert({
-                html: diff,
+                html: diffUnnormalized,
                 lineLength,
                 firstLine: firstLineNumber
             });
+        } else {
+            // Only normalize through DOM if needed (no line numbering)
+            let node: Element = document.createElement(`div`);
+            node.innerHTML = diffUnnormalized;
+            diff = node.innerHTML;
         }
     }
 
@@ -780,23 +785,31 @@ export function diff(
 }
 
 export function readdOsSplit(diff: string, versions: string[], before = false): string {
+    // Performance: Early return if className not present in any version
     const className = before ? `os-split-before` : `os-split-after`;
+    const classCheck = `.${className}`;
+    let hasClassName = false;
+    for (let i = 0; i < versions.length; i++) {
+        if (versions[i].indexOf(className) !== -1) {
+            hasClassName = true;
+            break;
+        }
+    }
+    
+    if (!hasClassName) {
+        return diff;
+    }
 
     const diffEl = document.createElement(`template`);
     diffEl.innerHTML = diff;
     const diffNode = (before ? diffEl.content.firstChild : diffEl.content.lastChild) as HTMLElement;
 
+    // Performance: Only create templates and query if class name was found
     const versionNodes: HTMLElement[] = [];
-    let found = false;
-    for (const v of versions) {
+    for (let i = 0; i < versions.length; i++) {
         const el = document.createElement(`template`);
-        el.innerHTML = v;
+        el.innerHTML = versions[i];
         versionNodes.push((before ? el.content.firstChild : el.content.lastChild) as HTMLElement);
-        found = found || !!el.content.querySelector(`.${className}`);
-    }
-
-    if (!found) {
-        return diff;
     }
 
     recAddOsSplit(diffNode, versionNodes, before);
