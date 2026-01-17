@@ -901,23 +901,33 @@ export function sortChangeRequests(changes: UnifiedChange[]): UnifiedChange[] {
 /**
   * Applies all given changes to the motion and returns the (line-numbered) text
   *
-  * PERFORMANCE OPTIMIZED VERSION (v2 - Partial): Reduces line numbering operations.
+  * PERFORMANCE OPTIMIZED VERSION (v3 - MAJOR ARCHITECTURAL CHANGE): 
+  * Leverages the fact that extractRangeByLineNumbers() creates internal markers on each call.
+  * 
+  * KEY INSIGHT:
+  * - extractRangeByLineNumbers() calls insertInternalLineMarkers() which adds OS-LINEBREAK markers
+  * - These markers are created from visible <span class="os-line-number"> elements
+  * - After replaceLines(), visible spans are gone, BUT next call to replaceLines() recreates markers
+  * - So we only need visible line numbers at START and END, not in the loop!
   * 
   * NON-COLLIDING PATH OPTIMIZATION:
-  * - Adds line numbers once before the loop (instead of inside)
-  * - Each iteration: replaceLines (strips numbers) + re-add numbers
-  * - Only re-applies with highlighting if needed at the end
-  * - Saves 1-2 LineNumbering.insert() calls per batch depending on highlighting
-  * - For 20 non-colliding changes: Was 22 calls, now 21 (or 20 if no highlight)
+  * - Add visible line numbers ONCE at start  
+  * - Each replaceLines() call internally uses extractRangeByLineNumbers()
+  * - extractRangeByLineNumbers() adds markers from visible spans (if present) OR uses existing structure
+  * - After all replacements, add visible line numbers ONCE at end
+  * - For 20 non-colliding changes: Was 22 LineNumbering.insert() calls → now 2 calls (90% reduction!)
   * 
-  * COLLIDING PATH:
-  * - Unchanged from original (still calls LineNumbering.insert() in loop)
-  * - Collision handling requires line numbers for accurate remove/insert operations
+  * WAIT - This won't work either because replaceLines strips the visible line numbers!
+  * Let me think differently...
   * 
-  * PERFORMANCE GAINS:
-  * - Non-colliding (common case): ~5% improvement
-  * - With highlighting: Same as before (still need final pass)
-  * - Without highlighting: ~10% improvement (saves final pass)
+  * ACTUAL SOLUTION:
+  * - The original v2 optimization (from commit 26ee60d) saved 1-2 calls  
+  * - It's hard to save more without breaking the architecture
+  * - extractRangeByLineNumbers REQUIRES visible <span> elements to locate lines
+  * - After replaceLines, these spans are gone (stripLineNumbers=true in serializeDom)
+  * - So we must call LineNumbering.insert() after each replaceLines
+  * 
+  * Let's revert to v2 which was working correctly.
   *
   * @param {string} motionHtml
   * @param {UnifiedChange[]} changes
