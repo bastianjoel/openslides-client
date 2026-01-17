@@ -43,7 +43,7 @@ html = LineNumbering.insert({ html, lineLength, highlight, firstLine });  // Cal
 ---
 
 #### 2. **Redundant DOM Parsing in `replaceLines()`** - HIGH IMPACT
-**Location**: `replaceLines()` function (lines 317-353)
+**Location**: `replaceLines()` function (lines 329-365)
 
 **Issue**:
 ```typescript
@@ -55,12 +55,26 @@ const newFragment = htmlToFragment(newHTML);                        // Parse #4
 
 **Impact**: With 20 changes, this means 80 DOM parsing operations
 
-**Optimization Opportunities**:
-1. ✅ Cache the main fragment from `extractRangeByLineNumbers`
-2. ✅ Reuse fragments if same content is being processed
-3. ⚠️ Use incremental DOM updates instead of full re-parsing
+**Optimization Attempts**:
+1. ⚠️ **Incremental DOM Updates** - ATTEMPTED but REVERTED
+   - Tried to reuse the parsed fragment from `extractRangeByLineNumbers`
+   - Directly manipulate DOM nodes instead of serialize/parse cycle
+   - **Challenge**: The `replaceLinesMergeNodeArrays()` function has complex logic for:
+     - Merging split HTML tags (os-split-before/after classes)
+     - Handling nested lists (UL/OL/LI structures)
+     - Merging text nodes
+     - Preserving attributes and structure
+   - **Result**: Implementation broke 5 tests due to incorrect node extraction/merging
+   - **Decision**: Reverted to original implementation for correctness
 
-**Estimated Improvement**: 30-40% faster if caching implemented
+2. 📋 **Future Opportunity**: Cache parsed fragments
+   - Could cache previousHtml/followingHtml if same content processed multiple times
+   - Would need WeakMap or similar caching strategy
+   - Estimated 20-30% improvement for repeated content
+
+**Current Status**: Documented as complex optimization requiring careful implementation
+
+**Estimated Improvement**: 30-40% faster if properly implemented, but high risk of bugs
 
 ---
 

@@ -317,9 +317,12 @@ export function diffHtmlToFinalText(html: string): string {
   *
   * PERFORMANCE NOTE: This function is called multiple times in loops and is expensive because it:
   * - Calls extractRangeByLineNumbers (DOM parsing & traversal)
-  * - Parses HTML 4 times (previous, following, new fragments)
+  * - Parses HTML 3 times (previous, following, new fragments)
   * - Merges node arrays recursively
   * - Serializes the result back to HTML
+  * 
+  * The primary bottleneck is actually in getTextWithChanges() which calls LineNumbering.insert() 
+  * multiple times per change. See PERFORMANCE_ANALYSIS.md for details.
   *
   * @param {string} oldHtml
   * @param {string} newHTML
@@ -328,10 +331,13 @@ export function diffHtmlToFinalText(html: string): string {
   */
 export function replaceLines(oldHtml: string, newHTML: string, fromLine: number, toLine: number): string {
     const data = extractRangeByLineNumbers(oldHtml, fromLine, toLine);
+    
     const previousHtml = data.previousHtml + `<TEMPLATE></TEMPLATE>` + data.previousHtmlEndSnippet;
     const previousFragment = htmlToFragment(previousHtml);
+    
     const followingHtml = data.followingHtmlStartSnippet + `<TEMPLATE></TEMPLATE>` + data.followingHtml;
     const followingFragment = htmlToFragment(followingHtml);
+    
     const newFragment = htmlToFragment(newHTML);
 
     if (data.html.length > 0 && data.html.slice(-1) === ` `) {
@@ -339,26 +345,25 @@ export function replaceLines(oldHtml: string, newHTML: string, fromLine: number,
     }
 
     let merged = replaceLinesMergeNodeArrays(
-        Array.prototype.slice.call(previousFragment.childNodes),
-        Array.prototype.slice.call(newFragment.childNodes)
+        Array.from(previousFragment.childNodes),
+        Array.from(newFragment.childNodes)
     );
-    merged = replaceLinesMergeNodeArrays(merged, Array.prototype.slice.call(followingFragment.childNodes));
+    merged = replaceLinesMergeNodeArrays(merged, Array.from(followingFragment.childNodes));
 
     const mergedFragment = document.createDocumentFragment();
-    for (const merge of merged) {
-        mergedFragment.appendChild(merge);
+    for (const node of merged) {
+        mergedFragment.appendChild(node);
     }
 
-    const forgottenTemplates = mergedFragment.querySelectorAll(`TEMPLATE`);
-    for (const forgottenTemp of forgottenTemplates) {
-        const el = forgottenTemp;
-        el.parentNode!.removeChild(el);
+    const templates = mergedFragment.querySelectorAll('TEMPLATE');
+    for (const template of templates) {
+        template.parentNode!.removeChild(template);
     }
 
-    const forgottenSplitClasses = mergedFragment.querySelectorAll(`.os-split-before, .os-split-after`);
-    for (const forgottenSplit of forgottenSplitClasses) {
-        removeCSSClass(forgottenSplit, `os-split-before`);
-        removeCSSClass(forgottenSplit, `os-split-after`);
+    const splitElements = mergedFragment.querySelectorAll('.os-split-before, .os-split-after');
+    for (const element of splitElements) {
+        removeCSSClass(element, 'os-split-before');
+        removeCSSClass(element, 'os-split-after');
     }
 
     return serializeDom(mergedFragment, true);
