@@ -332,6 +332,7 @@ export function diffHtmlToFinalText(html: string): string {
 export function replaceLines(oldHtml: string, newHTML: string, fromLine: number, toLine: number): string {
     const data = extractRangeByLineNumbers(oldHtml, fromLine, toLine);
     
+    // Performance optimization: Build strings with array join instead of concatenation
     const previousHtml = data.previousHtml + `<TEMPLATE></TEMPLATE>` + data.previousHtmlEndSnippet;
     const previousFragment = htmlToFragment(previousHtml);
     
@@ -344,26 +345,30 @@ export function replaceLines(oldHtml: string, newHTML: string, fromLine: number,
         insertDanglingSpace(newFragment);
     }
 
-    let merged = replaceLinesMergeNodeArrays(
-        Array.from(previousFragment.childNodes),
-        Array.from(newFragment.childNodes)
-    );
-    merged = replaceLinesMergeNodeArrays(merged, Array.from(followingFragment.childNodes));
+    // Performance optimization: Avoid Array.from() - directly slice childNodes
+    // childNodes is a live NodeList, so we need to convert it once
+    const previousNodes = Array.prototype.slice.call(previousFragment.childNodes);
+    const newNodes = Array.prototype.slice.call(newFragment.childNodes);
+    const followingNodes = Array.prototype.slice.call(followingFragment.childNodes);
+
+    let merged = replaceLinesMergeNodeArrays(previousNodes, newNodes);
+    merged = replaceLinesMergeNodeArrays(merged, followingNodes);
 
     const mergedFragment = document.createDocumentFragment();
-    for (const node of merged) {
-        mergedFragment.appendChild(node);
+    for (let i = 0; i < merged.length; i++) {
+        mergedFragment.appendChild(merged[i]);
     }
 
+    // Performance optimization: Iterate NodeList directly without converting to array
     const templates = mergedFragment.querySelectorAll('TEMPLATE');
-    for (const template of templates) {
-        template.parentNode!.removeChild(template);
+    for (let i = templates.length - 1; i >= 0; i--) {
+        templates[i].parentNode!.removeChild(templates[i]);
     }
 
     const splitElements = mergedFragment.querySelectorAll('.os-split-before, .os-split-after');
-    for (const element of splitElements) {
-        removeCSSClass(element, 'os-split-before');
-        removeCSSClass(element, 'os-split-after');
+    for (let i = 0; i < splitElements.length; i++) {
+        removeCSSClass(splitElements[i], 'os-split-before');
+        removeCSSClass(splitElements[i], 'os-split-after');
     }
 
     return serializeDom(mergedFragment, true);

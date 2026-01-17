@@ -79,7 +79,8 @@ export function serializePartialDomToChild(node: Node, toChildTrace: Node[], str
         return ``;
     }
 
-    let html = serializeTagDiff(node);
+    // Performance optimization: Use array to collect parts, then join
+    const parts: string[] = [serializeTagDiff(node)];
     let found = false;
 
     for (let i = 0; i < node.childNodes.length && !found; i++) {
@@ -89,10 +90,10 @@ export function serializePartialDomToChild(node: Node, toChildTrace: Node[], str
             const remainingTrace = toChildTrace;
             remainingTrace.shift();
             if (!isOsLineNumberNode(childElement) && remainingTrace.length > 0) {
-                html += serializePartialDomToChild(childElement, remainingTrace, stripLineNumbers);
+                parts.push(serializePartialDomToChild(childElement, remainingTrace, stripLineNumbers));
             }
         } else if (node.childNodes[i].nodeType === TEXT_NODE) {
-            html += node.childNodes[i].nodeValue;
+            parts.push(node.childNodes[i].nodeValue || '');
         } else {
             const childElement = node.childNodes[i] as Element;
             if (
@@ -100,14 +101,14 @@ export function serializePartialDomToChild(node: Node, toChildTrace: Node[], str
                 (!isOsLineNumberNode(childElement) &&
                     !isOsLineBreakNode(childElement))
             ) {
-                html += serializeDom(childElement, stripLineNumbers);
+                parts.push(serializeDom(childElement, stripLineNumbers));
             }
         }
     }
     if (!found) {
         throw new Error(`Inconsistency or invalid call of this function detected (to)`);
     }
-    return html;
+    return parts.join('');
 }
 
 /**
@@ -133,7 +134,8 @@ export function serializePartialDomFromChild(node: Node, fromChildTrace: Node[],
         return ``;
     }
 
-    let html = ``;
+    // Performance optimization: Use array to collect parts, then join
+    const parts: string[] = [];
     let found = false;
     for (const child of node.childNodes) {
         if (child === fromChildTrace[0]) {
@@ -142,11 +144,11 @@ export function serializePartialDomFromChild(node: Node, fromChildTrace: Node[],
             const remainingTrace = fromChildTrace;
             remainingTrace.shift();
             if (!isOsLineNumberNode(childElement) && remainingTrace.length > 0) {
-                html += serializePartialDomFromChild(childElement, remainingTrace, stripLineNumbers);
+                parts.push(serializePartialDomFromChild(childElement, remainingTrace, stripLineNumbers));
             }
         } else if (found) {
             if (child.nodeType === TEXT_NODE) {
-                html += child.nodeValue;
+                parts.push(child.nodeValue || '');
             } else {
                 const childElement = child as Element;
                 if (
@@ -154,7 +156,7 @@ export function serializePartialDomFromChild(node: Node, fromChildTrace: Node[],
                     (!isOsLineNumberNode(childElement) &&
                         !isOsLineBreakNode(childElement))
                 ) {
-                    html += serializeDom(childElement, stripLineNumbers);
+                    parts.push(serializeDom(childElement, stripLineNumbers));
                 }
             }
         }
@@ -163,10 +165,10 @@ export function serializePartialDomFromChild(node: Node, fromChildTrace: Node[],
         throw new Error(`Inconsistency or invalid call of this function detected (from)`);
     }
     if (node.nodeType !== DOCUMENT_FRAGMENT_NODE) {
-        html += `</` + node.nodeName + `>`;
+        parts.push(`</` + node.nodeName + `>`);
     }
 
-    return html;
+    return parts.join('');
 }
 
 /**
@@ -191,30 +193,33 @@ export function serializeDom(node: Node, stripLineNumbers: boolean): string {
     }
     if (node.nodeName === `BR`) {
         const element = node as Element;
-        let br = `<BR`;
+        // Performance optimization: Use array for BR attributes
+        const attrParts: string[] = ['<BR'];
         for (const attibutes of element.attributes) {
             const attr = attibutes;
-            br += ` ` + attr.name + `="` + attr.value + `"`;
+            attrParts.push(` ${attr.name}="${attr.value}"`);
         }
-        return br + `>`;
+        attrParts.push('>');
+        return attrParts.join('');
     }
 
-    let html = serializeTagDiff(node);
+    // Performance optimization: Use array to collect parts, then join
+    const parts: string[] = [serializeTagDiff(node)];
     for (const child of node.childNodes) {
         if (child.nodeType === TEXT_NODE) {
-            html += child
+            parts.push(child
                 .nodeValue!.replace(/&/g, `&amp;`)
                 .replace(/</g, `&lt;`)
-                .replace(/>/g, `&gt;`);
+                .replace(/>/g, `&gt;`));
         } else {
-            html += serializeDom(child, stripLineNumbers);
+            parts.push(serializeDom(child, stripLineNumbers));
         }
     }
     if (node.nodeType !== DOCUMENT_FRAGMENT_NODE) {
-        html += `</` + node.nodeName + `>`;
+        parts.push(`</` + node.nodeName + `>`);
     }
 
-    return html;
+    return parts.join('');
 }
 
 export function recAddOsSplit(diff: HTMLElement, versions: HTMLElement[], before = false): void {
@@ -333,17 +338,35 @@ export function insertDanglingSpace(element: Element | DocumentFragment): void {
  * @param {Node[]} nodes2
  * @returns {Node[]}
  */
+/**
+ * Merge two arrays of nodes, handling text nodes and matching element nodes specially.
+ * 
+ * Performance optimized: Reduce array allocations and copying
+ * 
+ * @param {Node[]} nodes1
+ * @param {Node[]} nodes2
+ * @returns {Node[]}
+ */
 export function replaceLinesMergeNodeArrays(nodes1: Node[], nodes2: Node[]): Node[] {
     if (nodes1.length === 0 || nodes2.length === 0) {
         return nodes1.length ? nodes1 : nodes2;
     }
 
-    const out: Node[] = nodes1.slice(0, -1);
+    // Performance optimization: Pre-allocate result array size
+    const out: Node[] = new Array(nodes1.length + nodes2.length - 1);
+    let outIdx = 0;
+    
+    // Copy all but last node from nodes1
+    for (let i = 0; i < nodes1.length - 1; i++) {
+        out[outIdx++] = nodes1[i];
+    }
+    
     const lastNode: Node = nodes1[nodes1.length - 1];
     const firstNode: Node = nodes2[0];
+    
     if (lastNode.nodeType === TEXT_NODE && firstNode.nodeType === TEXT_NODE) {
         const newTextNode: Text = lastNode.ownerDocument!.createTextNode(lastNode.nodeValue! + firstNode.nodeValue);
-        out.push(newTextNode);
+        out[outIdx++] = newTextNode;
     } else if (lastNode.nodeName === firstNode.nodeName) {
         const lastElement: Element = lastNode as Element;
         const newNode: HTMLElement = lastNode.ownerDocument!.createElement(lastNode.nodeName);
@@ -368,17 +391,26 @@ export function replaceLinesMergeNodeArrays(nodes1: Node[], nodes2: Node[]): Nod
             newNode.appendChild(child);
         }
 
-        out.push(newNode);
+        out[outIdx++] = newNode;
     } else {
         if (lastNode.nodeName !== `TEMPLATE`) {
-            out.push(lastNode);
+            out[outIdx++] = lastNode;
         }
         if (firstNode.nodeName !== `TEMPLATE`) {
-            out.push(firstNode);
+            out[outIdx++] = firstNode;
         }
     }
 
-    return out.concat(nodes2.slice(1, nodes2.length));
+    // Copy remaining nodes from nodes2
+    for (let i = 1; i < nodes2.length; i++) {
+        out[outIdx++] = nodes2[i];
+    }
+    
+    // Trim array to actual size if needed
+    if (outIdx < out.length) {
+        return out.slice(0, outIdx);
+    }
+    return out;
 }
 
 /**

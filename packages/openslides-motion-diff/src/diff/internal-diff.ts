@@ -14,15 +14,17 @@ export function diffString(oldStr: string, newStr: string): string {
 
     const out = diffArrays(tokenizeHtml(oldStr), tokenizeHtml(newStr));
 
-    let str = ``;
+    // Performance optimization: Use array to collect parts, then join
+    const parts: string[] = [];
+    
     if (out.n.length === 0) {
         for (const o of out.o) {
-            str += `<del>` + o + `</del>`;
+            parts.push(`<del>`, o, `</del>`);
         }
     } else {
         if (out.n[0].text === undefined) {
             for (let k = 0; k < out.o.length && out.o[k].text === undefined; k++) {
-                str += `<del>` + out.o[k] + `</del>`;
+                parts.push(`<del>`, out.o[k], `</del>`);
             }
         }
 
@@ -30,34 +32,34 @@ export function diffString(oldStr: string, newStr: string): string {
         for (let i = 0; i < out.n.length; i++) {
             if (out.n[i].text === undefined) {
                 if (out.n[i] !== ``) {
-                    str += `<ins>` + out.n[i] + `</ins>`;
+                    parts.push(`<ins>`, out.n[i], `</ins>`);
                 }
             } else if (out.n[i].row < currOldRow) {
-                str += `<ins>` + out.n[i].text + `</ins>`;
+                parts.push(`<ins>`, out.n[i].text, `</ins>`);
             } else {
-                let pre = ``;
+                const preParts: string[] = [];
 
                 if (i + 1 < out.n.length && out.n[i + 1].row !== undefined && out.n[i + 1].row > out.n[i].row + 1) {
                     for (let n = out.n[i].row + 1; n < out.n[i + 1].row; n++) {
                         if (out.o[n].text === undefined) {
-                            pre += `<del>` + out.o[n] + `</del>`;
+                            preParts.push(`<del>`, out.o[n], `</del>`);
                         } else {
-                            pre += `<del>` + out.o[n].text + `</del>`;
+                            preParts.push(`<del>`, out.o[n].text, `</del>`);
                         }
                     }
                 } else {
                     for (let j = out.n[i].row + 1; j < out.o.length && out.o[j].text === undefined; j++) {
-                        pre += `<del>` + out.o[j] + `</del>`;
+                        preParts.push(`<del>`, out.o[j], `</del>`);
                     }
                 }
-                str += out.n[i].text + pre;
+                parts.push(out.n[i].text, ...preParts);
 
                 currOldRow = out.n[i].row;
             }
         }
     }
 
-    return str.replace(/^\s+/g, ``).replace(/\s+$/g, ``).replace(/ {2,}/g, ` `);
+    return parts.join('').replace(/^\s+/g, ``).replace(/\s+$/g, ``).replace(/ {2,}/g, ` `);
 }
 
 /**
@@ -157,6 +159,8 @@ const TOKENIZE_REGEXES = {
  * This method splits a string into an array of strings, such as that it can be used by the diff method.
  * Mainly it tries to split it into single words, but prevents HTML tags from being split into different elements.
  *
+ * Performance optimized: Minimizes intermediate array allocations and spread operations
+ *
  * @param {string} str
  * @returns {string[]}
  */
@@ -174,8 +178,9 @@ function tokenizeHtml(str: string): string[] {
 
     let res = [str];
     for (const splitConf of splitConfigs) {
-        const newArr = [];
-        for (const str of res) {
+        const newArr: string[] = [];
+        for (let j = 0; j < res.length; j++) {
+            const str = res[j];
             // Don't split HTML tags
             if (str[0] === `<` && splitConf.by !== `<` && splitConf.by !== `>`) {
                 newArr.push(str);
@@ -183,12 +188,28 @@ function tokenizeHtml(str: string): string[] {
             }
 
             const parts = str.split(splitConf.regex);
-            newArr.push(
-                ...(splitConf.append ? parts.filter((el) => el !== ``) : parts),
-            );
+            // Performance: avoid spread operator and filter separately
+            if (splitConf.append) {
+                for (let k = 0; k < parts.length; k++) {
+                    if (parts[k] !== ``) {
+                        newArr.push(parts[k]);
+                    }
+                }
+            } else {
+                for (let k = 0; k < parts.length; k++) {
+                    newArr.push(parts[k]);
+                }
+            }
         }
         res = newArr;
     }
 
-    return res.filter((el) => el !== ``);
+    // Performance: filter in place to avoid creating intermediate array
+    const result: string[] = [];
+    for (let i = 0; i < res.length; i++) {
+        if (res[i] !== ``) {
+            result.push(res[i]);
+        }
+    }
+    return result;
 }
