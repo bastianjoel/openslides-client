@@ -31,6 +31,12 @@ import { getFirstLineNumberNode, getLastLineNumberNode, getLineNumberNode, seria
   * - extracting line 2 to 2 results in <p class="os-split-after os-split-before">Line 2</p>
   * - extracting line 3 to null/3 results in <p class="os-split-before">Line 3</p>
   *
+  * PERFORMANCE NOTE: This function is expensive as it:
+  * - Parses HTML into a DOM fragment
+  * - Traverses the DOM tree multiple times
+  * - Serializes DOM nodes back to HTML strings
+  * Consider caching results when calling multiple times with the same input.
+  *
   * @param {LineNumberedString} html
   * @param {number} fromLine
   * @param {number} toLine
@@ -309,6 +315,12 @@ export function diffHtmlToFinalText(html: string): string {
   *
   * This is used for creating the consolidated version of motions.
   *
+  * PERFORMANCE NOTE: This function is called multiple times in loops and is expensive because it:
+  * - Calls extractRangeByLineNumbers (DOM parsing & traversal)
+  * - Parses HTML 4 times (previous, following, new fragments)
+  * - Merges node arrays recursively
+  * - Serializes the result back to HTML
+  *
   * @param {string} oldHtml
   * @param {string} newHTML
   * @param {number} fromLine
@@ -322,7 +334,7 @@ export function replaceLines(oldHtml: string, newHTML: string, fromLine: number,
     const followingFragment = htmlToFragment(followingHtml);
     const newFragment = htmlToFragment(newHTML);
 
-    if (data.html.length > 0 && data.html.substr(-1) === ` `) {
+    if (data.html.length > 0 && data.html.slice(-1) === ` `) {
         insertDanglingSpace(newFragment);
     }
 
@@ -355,6 +367,13 @@ export function replaceLines(oldHtml: string, newHTML: string, fromLine: number,
 /**
   * This function calculates the diff between two strings and tries to fix problems with the resulting HTML.
   * If lineLength and firstLineNumber is given, line numbers will be returned es well
+  *
+  * PERFORMANCE NOTE: This is one of the most expensive functions in the package:
+  * - Parses HTML twice (template elements)
+  * - Calls diffString which tokenizes and compares HTML
+  * - Applies 20+ sequential regex replacements
+  * - May call LineNumbering.insert or diffParagraphs
+  * Consider minimizing calls to this function or batching operations.
   *
   * @param {string} htmlOld
   * @param {string} htmlNew
@@ -431,7 +450,8 @@ export function diff(
 
     // Performing the actual diff
     const str = diffString(htmlOld, htmlNew);
-    let diffUnnormalized = str.replace(/^\s+/g, ``).replace(/\s+$/g, ``).replace(/ {2,}/g, ` `);
+    // Performance optimization: Use trim() and single replace for whitespace normalization
+    let diffUnnormalized = str.trim().replace(/ {2,}/g, ` `);
 
     diffUnnormalized = fixWrongChangeDetection(diffUnnormalized);
 
@@ -469,32 +489,26 @@ export function diff(
     diffUnnormalized = diffUnnormalized.replace(
         /<del>([a-z0-9,_-]* ?)<\/del><ins>([a-z0-9,_-]* ?)<\/ins>/gi,
         (_found: string, oldText: string, newText: string): string => {
-            let foundDiff = false;
-            let commonStart = ``;
-            let commonEnd = ``;
-            let remainderOld = oldText;
-            let remainderNew = newText;
-
-            while (remainderOld.length > 0 && remainderNew.length > 0 && !foundDiff) {
-                if (remainderOld[0] === remainderNew[0]) {
-                    commonStart += remainderOld[0];
-                    remainderOld = remainderOld.substr(1);
-                    remainderNew = remainderNew.substr(1);
-                } else {
-                    foundDiff = true;
-                }
+            // Performance optimization: Find common prefix
+            let startIdx = 0;
+            const minLen = Math.min(oldText.length, newText.length);
+            while (startIdx < minLen && oldText[startIdx] === newText[startIdx]) {
+                startIdx++;
             }
-
-            foundDiff = false;
-            while (remainderOld.length > 0 && remainderNew.length > 0 && !foundDiff) {
-                if (remainderOld[remainderOld.length - 1] === remainderNew[remainderNew.length - 1]) {
-                    commonEnd = remainderOld[remainderOld.length - 1] + commonEnd;
-                    remainderNew = remainderNew.substr(0, remainderNew.length - 1);
-                    remainderOld = remainderOld.substr(0, remainderOld.length - 1);
-                } else {
-                    foundDiff = true;
-                }
+            
+            // Performance optimization: Find common suffix
+            let endIdxOld = oldText.length - 1;
+            let endIdxNew = newText.length - 1;
+            while (endIdxOld >= startIdx && endIdxNew >= startIdx && 
+                   oldText[endIdxOld] === newText[endIdxNew]) {
+                endIdxOld--;
+                endIdxNew--;
             }
+            
+            const commonStart = oldText.slice(0, startIdx);
+            const remainderOld = oldText.slice(startIdx, endIdxOld + 1);
+            const remainderNew = newText.slice(startIdx, endIdxNew + 1);
+            const commonEnd = oldText.slice(endIdxOld + 1);
 
             let out = commonStart;
             if (remainderOld !== ``) {
@@ -872,6 +886,14 @@ export function sortChangeRequests(changes: UnifiedChange[]): UnifiedChange[] {
 /**
   * Applies all given changes to the motion and returns the (line-numbered) text
   *
+  * PERFORMANCE NOTE: This is a primary bottleneck for amendment processing:
+  * - Calls LineNumbering.insert multiple times (expensive DOM operation)
+  * - Calls replaceLines or removeLines/insertLines for each change (DOM parsing each time)
+  * - For N changes, this results in O(N) line numbering operations
+  * 
+  * The showAllCollisions=false path is more efficient as it avoids removeLines/insertLines.
+  * However, line numbering must be done per-change because replaceLines removes line numbers.
+  *
   * @param {string} motionHtml
   * @param {UnifiedChange[]} changes
   * @param {number} lineLength
@@ -890,6 +912,17 @@ export function getTextWithChanges(
     let html = motionHtml;
 
     changes = changes.filter(change => !change.isTitleChange);
+    
+    // Performance optimization: Early return if no changes to apply
+    if (changes.length === 0) {
+        return LineNumbering.insert({
+            html,
+            lineLength,
+            highlight: highlightLine,
+            firstLine: firstLine
+        });
+    }
+    
     // Changes need to be applied from the bottom up, to prevent conflicts with changing line numbers.
     changes = sortChangeRequests(changes).reverse();
 
