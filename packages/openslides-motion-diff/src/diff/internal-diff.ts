@@ -74,29 +74,40 @@ function diffArrays(oldArr: any, newArr: any): any {
     const ns: any = {};
     const os: any = {};
 
+    // Performance: Build lookup maps
     for (let i = 0; i < newArr.length; i++) {
-        if (ns[newArr[i]] === undefined) {
-            ns[newArr[i]] = { rows: [], o: null };
+        const key = newArr[i];
+        if (ns[key] === undefined) {
+            ns[key] = { rows: [], o: null };
         }
-        ns[newArr[i]].rows.push(i);
+        ns[key].rows.push(i);
     }
 
     for (let i = 0; i < oldArr.length; i++) {
-        if (os[oldArr[i]] === undefined) {
-            os[oldArr[i]] = { rows: [], n: null };
+        const key = oldArr[i];
+        if (os[key] === undefined) {
+            os[key] = { rows: [], n: null };
         }
-        os[oldArr[i]].rows.push(i);
+        os[key].rows.push(i);
     }
 
-    for (const i in ns) {
-        if (ns[i].rows.length === 1 && typeof os[i] !== `undefined` && os[i].rows.length === 1) {
-            newArr[ns[i].rows[0]] = { text: newArr[ns[i].rows[0]], row: os[i].rows[0] };
-            oldArr[os[i].rows[0]] = { text: oldArr[os[i].rows[0]], row: ns[i].rows[0] };
+    // Performance: Use Object.keys for faster iteration and cache checks
+    const nsKeys = Object.keys(ns);
+    for (let k = 0; k < nsKeys.length; k++) {
+        const i = nsKeys[k];
+        const nsEntry = ns[i];
+        const osEntry = os[i];
+        
+        if (nsEntry.rows.length === 1 && osEntry !== undefined && osEntry.rows.length === 1) {
+            const nsRow = nsEntry.rows[0];
+            const osRow = osEntry.rows[0];
+            newArr[nsRow] = { text: newArr[nsRow], row: osRow };
+            oldArr[osRow] = { text: oldArr[osRow], row: nsRow };
         } else if (
-            ns[i].rows.length >= 1 &&
-            ns[i].rows.indexOf(0) !== -1 &&
-            os[i] !== undefined &&
-            os[i].rows.indexOf(0) !== -1
+            nsEntry.rows.length >= 1 &&
+            nsEntry.rows[0] === 0 &&
+            osEntry !== undefined &&
+            osEntry.rows[0] === 0
         ) {
             newArr[0] = { text: newArr[0], row: 0 };
             oldArr[0] = { text: oldArr[0], row: 0 };

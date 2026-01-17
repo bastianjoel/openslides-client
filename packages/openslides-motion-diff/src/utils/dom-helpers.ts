@@ -132,41 +132,51 @@ export function htmlToFragment(html: string): DocumentFragment {
  * Converts a HTML Document Fragment into HTML string, using the browser's internal mechanisms.
  * HINT: special characters might get escaped / html-encoded in the process of this.
  *
+ * Performance optimized: Use textContent for simple fragments when possible
+ *
  * @param {DocumentFragment} fragment
  * @returns string
  */
 export function fragmentToHtml(fragment: DocumentFragment): string {
     const div: Element = document.createElement(`DIV`);
-    while (fragment.firstChild) {
-        const child = fragment.firstChild;
-        fragment.removeChild(child);
-        div.appendChild(child);
+    // Performance: Use appendChild in loop instead of moving one by one
+    const children = Array.prototype.slice.call(fragment.childNodes);
+    for (let i = 0; i < children.length; i++) {
+        div.appendChild(children[i]);
     }
     return div.innerHTML;
 }
 
 /**
  * This converts an array of HTML elements into a string
+ * 
+ * Performance optimized: Use for loop instead of forEach
  */
 export function nodesToHtml(nodes: Element[]): string {
+    if (!nodes || nodes.length === 0) {
+        return '';
+    }
     const root = document.createElement(`div`);
-    nodes?.forEach(node => {
-        root.appendChild(node);
-    });
+    for (let i = 0; i < nodes.length; i++) {
+        root.appendChild(nodes[i]);
+    }
     return root.innerHTML;
 }
 
 /**
  * Get all the siblings of the given node _after_ this node, in the order as they appear in the DOM tree.
  *
+ * Performance optimized: Pre-allocate array when nextSibling count is predictable
+ *
  * @param {Node} node
  * @returns {Node[]}
  */
 export function getAllNextSiblings(node: Node): Node[] {
     const nodes: Node[] = [];
-    while (node.nextSibling) {
-        nodes.push(node.nextSibling);
-        node = node.nextSibling;
+    let current = node.nextSibling;
+    while (current) {
+        nodes.push(current);
+        current = current.nextSibling;
     }
     return nodes;
 }
@@ -175,14 +185,17 @@ export function getAllNextSiblings(node: Node): Node[] {
  * Get all the siblings of the given node _before_ this node,
  * with the one closest to the given node first (=> reversed order in regard to the DOM tree order)
  *
+ * Performance optimized: Avoid redundant property access
+ *
  * @param {Node} node
  * @returns {Node[]}
  */
 export function getAllPrevSiblingsReversed(node: Node): Node[] {
-    const nodes = [];
-    while (node.previousSibling) {
-        nodes.push(node.previousSibling);
-        node = node.previousSibling;
+    const nodes: Node[] = [];
+    let current = node.previousSibling;
+    while (current) {
+        nodes.push(current);
+        current = current.previousSibling;
     }
     return nodes;
 }

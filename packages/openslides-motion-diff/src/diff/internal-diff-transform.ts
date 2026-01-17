@@ -7,11 +7,16 @@ import { serializeDom } from "./internal";
  * This fixes a very specific, really weird bug that is tested in the test case "does not a change in a very
  * specific case.
  *
+ * Performance optimized: Early exit and avoid redundant regex operations
+ *
  * @param {string}diffStr
  * @return {string}
  */
 export function fixWrongChangeDetection(diffStr: string): string {
-    if (diffStr.indexOf(`<del>`) === -1 || diffStr.indexOf(`<ins>`) === -1) {
+    // Performance: Early exit if no changes present
+    const hasDelIdx = diffStr.indexOf(`<del>`);
+    const hasInsIdx = diffStr.indexOf(`<ins>`);
+    if (hasDelIdx === -1 || hasInsIdx === -1) {
         return diffStr;
     }
 
@@ -22,6 +27,11 @@ export function fixWrongChangeDetection(diffStr: string): string {
     while ((found = findDelGroupFinder.exec(diffStr))) {
         const del = found[0];
         const split = returnStr.split(del);
+        
+        // Performance: Skip if no second part exists
+        if (!split[1]) {
+            continue;
+        }
 
         const findsGroupFinder = /^(?:<ins>.*?<\/ins>)+/gi;
         const foundIns = findsGroupFinder.exec(split[1]);
