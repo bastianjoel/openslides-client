@@ -191,7 +191,7 @@ export class LoginMaskComponent extends BaseMeetingComponent implements OnInit, 
 
     public async samlLogin(): Promise<void> {
         const redirectUrl = await this.authService.startSamlLogin();
-        location.replace(redirectUrl);
+        location.assign(redirectUrl);
     }
 
     /**
