@@ -145,17 +145,23 @@ export class SequentialNumberMappingService {
         collection: Collection,
         meetingIdSequentialNumber: string
     ): Promise<number | null> {
-        const unlock = await this._mutex.lock();
         if (
             !this._mapSequentialNumberId[collection] ||
             !this._mapSequentialNumberId[collection][meetingIdSequentialNumber]
         ) {
+            console.debug(`AQUIRING LOCK`, collection, meetingIdSequentialNumber);
+            const unlock = await this._mutex.lock();
+            if (!this._mapSequentialNumberId[collection]) {
+                this._mapSequentialNumberId[collection] = {};
+            }
+
             // TODO: It seems like this might not resolve
             try {
                 const data = await this.autoupdateService.single(
                     await this.modelRequestBuilder.build(this.getSequentialNumberRequest(collection)),
                     MODEL_REQUEST_DESCRIPTION + `:` + collection
                 );
+                console.log(`received seq number`, data);
 
                 const val = Object.values(data[collection]).find(
                     el => el[`meeting_id`] + `/` + el[`sequential_number`] === meetingIdSequentialNumber
@@ -164,9 +170,11 @@ export class SequentialNumberMappingService {
                 if (val[`id`]) {
                     this.setBehaviorSubject(collection, meetingIdSequentialNumber, val[`id`]);
                 }
-            } catch (e) {}
+            } catch (e) {
+                console.error(e);
+            }
+            unlock();
         }
-        unlock();
 
         return this._mapSequentialNumberId[collection][meetingIdSequentialNumber] || null;
     }
