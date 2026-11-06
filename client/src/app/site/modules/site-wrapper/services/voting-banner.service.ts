@@ -2,7 +2,6 @@ import { inject, Service } from '@angular/core';
 import { Id } from '@app/domain/definitions/key-types';
 import { Permission } from '@app/domain/definitions/permission';
 import { viewModelListEqual } from '@app/infrastructure/utils';
-import { PollBallotControllerService } from '@app/site/pages/meetings/modules/poll/services/poll-ballot-controller.service';
 import { VotingService } from '@app/site/pages/meetings/modules/poll/services/voting.service';
 import { ViewPoll } from '@app/site/pages/meetings/pages/polls/view-models';
 import { ActiveMeetingService } from '@app/site/pages/meetings/services/active-meeting.service';
@@ -11,7 +10,7 @@ import { MeetingSettingsService } from '@app/site/pages/meetings/services/meetin
 import { OperatorService } from '@app/site/services/operator.service';
 import { _ } from '@ngx-translate/core';
 import { TranslateService } from '@ngx-translate/core';
-import { combineLatest, distinctUntilChanged, Subscription } from 'rxjs';
+import { combineLatest, distinctUntilChanged, map, of, switchMap } from 'rxjs';
 
 import { BannerDefinition, BannerService } from './banner.service';
 
@@ -27,13 +26,11 @@ export class VotingBannerService {
     private subText = _(`Click here to vote!`);
 
     private pollsToVote: ViewPoll[] = [];
-    private pollsToVoteSubscription: Subscription;
 
     private banner = inject(BannerService);
     private translate = inject(TranslateService);
     private votingService = inject(VotingService);
     private activeMeeting = inject(ActiveMeetingService);
-    private sendVotesService = inject(PollBallotControllerService);
     private operator = inject(OperatorService);
     private activePolls = inject(ActivePollsService);
     private meetingSettingsService = inject(MeetingSettingsService);
@@ -49,27 +46,31 @@ export class VotingBannerService {
             this.operator.userObservable.pipe(
                 distinctUntilChanged((p, c) => p?.isPresentInMeeting() === c?.isPresentInMeeting())
             )
-        ]).subscribe(([_, polls]) => this.updateVotablePollSubscription(polls));
-    }
+        ])
+            .pipe(
+                switchMap(([_, polls]) => {
+                    if (!polls.length) {
+                        return of([polls, {}] as const);
+                    }
 
-    private async updateVotablePollSubscription(polls: ViewPoll[]): Promise<void> {
-        this.pollsToVoteSubscription?.unsubscribe();
-        if (!polls.length) {
-            this.updateBanner(polls, {});
-            return;
-        }
-
-        this.pollsToVoteSubscription = this.sendVotesService.subscribeVoted(...polls).subscribe(voted => {
-            this.updateBanner(polls, voted);
-        });
+                    const checkUsers = [this.operator.user, ...(this.operator.user.vote_delegations_from() || [])];
+                    return combineLatest(
+                        polls.map(poll =>
+                            combineLatest(
+                                checkUsers.map(user =>
+                                    this.votingService.hasVotedObservable(poll, user.getMeetingUser())
+                                )
+                            ).pipe(map(voted => [poll.id, voted.some(Boolean)] as const))
+                        )
+                    ).pipe(map(voted => [polls, Object.fromEntries(voted)] as const));
+                })
+            )
+            .subscribe(([polls, voted]) => this.updateBanner(polls, voted));
     }
 
     private updateBanner(polls: ViewPoll[], voted: Record<Id, boolean>): void {
         if (this.activeMeeting.meetingId && !this.operator.isAnonymous && this.operator.readyDeferred.wasResolved) {
-            const checkUsers = [this.operator.user, ...(this.operator.user.vote_delegations_from() || [])];
-            this.pollsToVote = polls.filter(
-                poll => checkUsers.some(user => this.votingService.canVote(poll, user)) && voted[poll.id] === false
-            );
+            this.pollsToVote = polls.filter(poll => voted[poll.id] === false);
         } else {
             this.pollsToVote = [];
         }
